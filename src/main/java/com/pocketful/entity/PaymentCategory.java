@@ -12,29 +12,13 @@ import java.time.LocalDate;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Payment {
+public class PaymentCategory {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
     @Column(nullable = false)
-    private float amount;
-
-    @Column(nullable = false)
-    private String description;
-
-    @Column(nullable = false)
-    private Boolean payed;
-
-    @Column(nullable = false)
-    private Boolean isExpense;
-
-    @Column
-    private LocalDate deadlineAt;
-
-    @JoinColumn(nullable = false)
-    @ManyToOne
-    private PaymentCategory paymentCategory;
+    private String name;
 
     @Column(nullable = false)
     private LocalDate createdAt;
