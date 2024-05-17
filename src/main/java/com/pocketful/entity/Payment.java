@@ -36,6 +36,10 @@ public class Payment {
     @ManyToOne
     private PaymentCategory paymentCategory;
 
+    @JoinColumn(nullable = false)
+    @ManyToOne
+    private PaymentFrequency paymentFrequency;
+
     @Column(nullable = false)
     private LocalDate createdAt;
 
