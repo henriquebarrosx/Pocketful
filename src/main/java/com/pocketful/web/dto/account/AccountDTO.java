@@ -1,4 +1,4 @@
-package com.pocketful.web.dto;
+package com.pocketful.web.dto.account;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

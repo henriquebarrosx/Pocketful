@@ -1,7 +1,7 @@
 package com.pocketful.web.mapper;
 
 import com.pocketful.entity.Account;
-import com.pocketful.web.dto.AccountDTO;
+import com.pocketful.web.dto.account.AccountDTO;
 import org.springframework.stereotype.Service;
 
 import java.util.function.Function;
