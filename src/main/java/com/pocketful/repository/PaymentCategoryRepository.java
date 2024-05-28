@@ -5,4 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PaymentCategoryRepository extends JpaRepository<PaymentCategory, Long> {
     Boolean existsPaymentCategoryByName(String name);
+
+    Boolean existsPaymentCategoryById(Long id);
 }

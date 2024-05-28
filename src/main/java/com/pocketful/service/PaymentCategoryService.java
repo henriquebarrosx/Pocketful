@@ -53,4 +53,10 @@ public class PaymentCategoryService {
         paymentCategory.setName(paymentCategoryDTO.getName());
         return paymentCategoryRepository.save(paymentCategory);
     }
+
+    public void delete(Long id) {
+        Boolean existsPaymentCategoryById = paymentCategoryRepository.existsPaymentCategoryById(id);
+        if (!existsPaymentCategoryById) throw new NotFoundException("Payment Category not found");
+        paymentCategoryRepository.deleteById(id);
+    }
 }

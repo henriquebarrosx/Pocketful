@@ -52,4 +52,10 @@ public class PaymentCategoryController {
                 .status(HttpStatus.OK)
                 .body(paymentCategoryDTOMapper.apply(paymentCategory));
     }
+
+    @DeleteMapping("{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        paymentCategoriesService.delete(id);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
 }
