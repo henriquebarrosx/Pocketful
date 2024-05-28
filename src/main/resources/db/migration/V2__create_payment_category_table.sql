@@ -1,3 +1,5 @@
+ALTER SEQUENCE payment_categories_SEQ INCREMENT BY 50;
+
 CREATE TABLE IF NOT EXISTS payment_categories (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE,
