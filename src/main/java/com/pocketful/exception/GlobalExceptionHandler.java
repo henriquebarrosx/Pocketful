@@ -16,4 +16,11 @@ public class GlobalExceptionHandler {
         ExceptionDTO exceptionDTO = new ExceptionDTO(exception.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(exceptionDTO);
     }
+
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ExceptionDTO> handleNotFoundException(Exception exception) {
+        log.error(exception.getMessage());
+        ExceptionDTO exceptionDTO = new ExceptionDTO(exception.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exceptionDTO);
+    }
 }
