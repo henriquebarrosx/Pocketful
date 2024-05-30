@@ -34,6 +34,10 @@ public class Payment {
     @Column
     private LocalDate deadlineAt;
 
+    @ManyToOne
+    @JoinColumn(nullable = false)
+    private Account account;
+
     @JoinColumn(nullable = false)
     @ManyToOne
     private PaymentCategory paymentCategory;
