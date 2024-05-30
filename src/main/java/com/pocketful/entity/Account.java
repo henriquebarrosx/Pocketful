@@ -2,6 +2,8 @@ package com.pocketful.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
 
@@ -26,9 +28,11 @@ public class Account {
     @Column(nullable = false, unique = true, name = "phone_number")
     private String phoneNumber;
 
+    @CreationTimestamp
     @Column(nullable = false)
     private LocalDate createdAt;
 
+    @UpdateTimestamp
     @Column(nullable = false)
     private LocalDate updatedAt;
 }

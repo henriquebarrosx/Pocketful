@@ -2,6 +2,8 @@ package com.pocketful.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
 
@@ -40,9 +42,11 @@ public class Payment {
     @ManyToOne
     private PaymentFrequency paymentFrequency;
 
+    @CreationTimestamp
     @Column(nullable = false)
     private LocalDate createdAt;
 
+    @UpdateTimestamp
     @Column(nullable = false)
     private LocalDate updatedAt;
 }
