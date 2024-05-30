@@ -1,0 +1,12 @@
+CREATE SEQUENCE IF NOT EXISTS accounts_seq START WITH 1 INCREMENT BY 50;
+
+CREATE TABLE accounts
+(
+    id           BIGINT       NOT NULL,
+    name         VARCHAR(255) NOT NULL,
+    email        VARCHAR(255) NOT NULL UNIQUE,
+    phone_number VARCHAR(255) NOT NULL UNIQUE,
+    created_at   TIMESTAMP    DEFAULT  CURRENT_TIMESTAMP,
+    updated_at   TIMESTAMP    DEFAULT  CURRENT_TIMESTAMP,
+    CONSTRAINT pk_accounts PRIMARY KEY (id)
+);
