@@ -9,12 +9,12 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 @Service
 public class PaymentFrequencyService {
-    private final int MAX_FREQUENCY_TIMES_IN_MONTHS = 600;
-    private final int MIN_FREQUENCY_TIMES_IN_MONTHS = 1;
-
     private final PaymentFrequencyRepository paymentFrequencyRepository;
 
     public PaymentFrequency create(boolean isIndeterminate, int times) {
+        int MIN_FREQUENCY_TIMES_IN_MONTHS = 1;
+        int MAX_FREQUENCY_TIMES_IN_MONTHS = 600;
+
         if (isIndeterminate) {
             return paymentFrequencyRepository.save(
                 PaymentFrequency.builder()
