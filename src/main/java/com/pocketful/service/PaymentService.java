@@ -4,18 +4,17 @@ import com.pocketful.entity.Account;
 import com.pocketful.entity.Payment;
 import com.pocketful.entity.PaymentCategory;
 import com.pocketful.entity.PaymentFrequency;
-import com.pocketful.repository.PaymentRepository;
 import com.pocketful.exception.BadRequestException;
-import com.pocketful.web.dto.payment.NewPaymentDTO;
 import com.pocketful.exception.InternalServerErrorException;
-
-import lombok.AllArgsConstructor;
+import com.pocketful.repository.PaymentRepository;
+import com.pocketful.web.dto.payment.NewPaymentDTO;
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.List;
 
 @AllArgsConstructor
 @Service
@@ -36,26 +35,19 @@ public class PaymentService {
             throw new BadRequestException("Amount should be greater than 0.");
         }
 
-        if (!isValidFrequencyTimes(newPaymentDTO.getFrequencyTimes())) {
-            throw new BadRequestException("Frequency times should be greater than 0.");
-        }
-
-        PaymentFrequency paymentFrequency = paymentFrequencyService.create(
-                newPaymentDTO.getIsIndeterminate(),
-                newPaymentDTO.getFrequencyTimes()
-        );
+        PaymentFrequency paymentFrequency = paymentFrequencyService
+            .create(newPaymentDTO.getIsIndeterminate(), newPaymentDTO.getFrequencyTimes());
 
         PaymentCategory paymentCategory = paymentCategoryService
-                .findById(newPaymentDTO.getPaymentCategoryId());
+            .findById(newPaymentDTO.getPaymentCategoryId());
 
-        Account account = accountService
-                .findById(newPaymentDTO.getAccountId());
+        Account account = accountService.findById(newPaymentDTO.getAccountId());
 
         List<Payment> payments = new ArrayList<>();
 
-        for (int i = 0; i < paymentFrequency.getTimes(); i++) {
+        for (int index = 0; index < paymentFrequency.getTimes(); index++) {
             LocalDate deadline = LocalDate.from(newPaymentDTO.getDeadlineAt())
-                    .plusMonths(i);
+                    .plusMonths(index);
 
             payments.add(
                     Payment.builder()
@@ -78,9 +70,5 @@ public class PaymentService {
 
     private Boolean isValidAmount(float amount) {
         return amount > 0;
-    }
-
-    private Boolean isValidFrequencyTimes(float times) {
-        return times >= 0;
     }
 }
