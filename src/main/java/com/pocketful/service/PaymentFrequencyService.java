@@ -9,23 +9,27 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 @Service
 public class PaymentFrequencyService {
-    public static int CENTURY_FREQUENCY_TIMES = 1200;
-    public static int INDETERMINATE_FREQUENCY_TIMES = 0;
+    private final int MAX_FREQUENCY_TIMES_IN_MONTHS = 600;
+    private final int MIN_FREQUENCY_TIMES_IN_MONTHS = 1;
 
     private final PaymentFrequencyRepository paymentFrequencyRepository;
 
     public PaymentFrequency create(boolean isIndeterminate, int times) {
-        if (times < INDETERMINATE_FREQUENCY_TIMES || times > CENTURY_FREQUENCY_TIMES) {
-            throw new BadRequestException("Frequency must to be between 0 and 1200");
+        if (isIndeterminate) {
+            return paymentFrequencyRepository.save(
+                PaymentFrequency.builder()
+                    .times(MAX_FREQUENCY_TIMES_IN_MONTHS)
+                    .build()
+            );
         }
 
-        int frequencyTimes = isIndeterminate
-                ? PaymentFrequencyService.CENTURY_FREQUENCY_TIMES
-                : times;
+        if (times < MIN_FREQUENCY_TIMES_IN_MONTHS || times > MAX_FREQUENCY_TIMES_IN_MONTHS) {
+            throw new BadRequestException("Invalid frequency times");
+        }
 
         return paymentFrequencyRepository.save(
                 PaymentFrequency.builder()
-                        .times(frequencyTimes)
+                        .times(times)
                         .build()
         );
     }
