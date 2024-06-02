@@ -4,10 +4,13 @@ import com.pocketful.entity.Account;
 import com.pocketful.exception.ConflictException;
 import com.pocketful.repository.AccountRepository;
 import com.pocketful.web.dto.account.NewAccountDTO;
-import org.junit.jupiter.api.BeforeEach;
+
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
 import org.mockito.Mock;
+import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -16,6 +19,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 class AccountServiceTest {
+    private AutoCloseable closeable;
+
     @InjectMocks
     private AccountService accountService;
 
@@ -24,7 +29,12 @@ class AccountServiceTest {
 
     @BeforeEach
     public void setup() {
-        MockitoAnnotations.initMocks(this);
+        closeable = MockitoAnnotations.openMocks(this);
+    }
+
+    @AfterEach
+    void tearDown() throws Exception {
+        closeable.close();
     }
 
     @Test
