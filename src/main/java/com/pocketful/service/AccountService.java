@@ -2,6 +2,7 @@ package com.pocketful.service;
 
 import com.pocketful.entity.Account;
 import com.pocketful.exception.ConflictException;
+import com.pocketful.exception.NotFoundException;
 import com.pocketful.repository.AccountRepository;
 import com.pocketful.web.dto.account.NewAccountDTO;
 
@@ -37,5 +38,10 @@ public class AccountService {
                         .updatedAt(LocalDate.now())
                         .build()
         );
+    }
+
+    public Account findById(Long accountId) {
+        return accountRepository.findById(accountId)
+                .orElseThrow(() -> new NotFoundException("Account id do not exist."));
     }
 }

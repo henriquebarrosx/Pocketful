@@ -36,8 +36,7 @@ public class PaymentCategoryService {
     }
 
     public PaymentCategory update(Long id, NewPaymentCategoryDTO paymentCategoryDTO) {
-        PaymentCategory paymentCategory = paymentCategoryRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Payment Category not found"));
+        PaymentCategory paymentCategory = findById(id);
 
         if (paymentCategory.getName().equals(paymentCategoryDTO.getName())) {
             throw new ConflictException("Payment category already registered as " + paymentCategoryDTO.getName());
@@ -55,8 +54,12 @@ public class PaymentCategoryService {
     }
 
     public void delete(Long id) {
-        Boolean existsPaymentCategoryById = paymentCategoryRepository.existsPaymentCategoryById(id);
-        if (!existsPaymentCategoryById) throw new NotFoundException("Payment Category not found");
-        paymentCategoryRepository.deleteById(id);
+        PaymentCategory paymentCategory = findById(id);
+        paymentCategoryRepository.deleteById(paymentCategory.getId());
+    }
+
+    public PaymentCategory findById(Long id) {
+        return paymentCategoryRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Payment Category not found"));
     }
 }
