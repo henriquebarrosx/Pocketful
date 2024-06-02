@@ -1,11 +1,7 @@
 package com.pocketful.web.dto.payment;
 
-import com.pocketful.entity.PaymentCategory;
-import com.pocketful.entity.PaymentFrequency;
-import jakarta.persistence.*;
+import com.pocketful.web.dto.payment_category.PaymentCategoryDTO;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
 
@@ -18,9 +14,9 @@ public class PaymentDTO {
     private Long id;
     private float amount;
     private String description;
-    private Boolean payed;
-    private Boolean isExpense;
+    private boolean payed;
+    private boolean isExpense;
+    private int frequencyTimes;
     private LocalDate deadlineAt;
-    private PaymentCategory paymentCategory;
-    private PaymentFrequency paymentFrequency;
+    private PaymentCategoryDTO paymentCategory;
 }
