@@ -5,7 +5,6 @@ import com.pocketful.exception.ConflictException;
 import com.pocketful.exception.NotFoundException;
 import com.pocketful.repository.PaymentCategoryRepository;
 import com.pocketful.web.dto.payment_category.NewPaymentCategoryDTO;
-
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -38,14 +37,10 @@ public class PaymentCategoryService {
     public PaymentCategory update(Long id, NewPaymentCategoryDTO paymentCategoryDTO) {
         PaymentCategory paymentCategory = findById(id);
 
-        if (paymentCategory.getName().equals(paymentCategoryDTO.getName())) {
-            throw new ConflictException("Payment category already registered as " + paymentCategoryDTO.getName());
-        }
-
-        Boolean existsPaymentWithName = paymentCategoryRepository
+        Boolean existsPaymentCategoryByName = paymentCategoryRepository
                 .existsPaymentCategoryByName(paymentCategoryDTO.getName());
 
-        if (existsPaymentWithName) {
+        if (existsPaymentCategoryByName) {
             throw new ConflictException("Payment category already exists.");
         }
 
