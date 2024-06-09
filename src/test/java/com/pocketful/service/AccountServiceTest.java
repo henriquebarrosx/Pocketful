@@ -38,7 +38,7 @@ class AccountServiceTest {
     }
 
     @Test
-    void shouldThrowErrorWhenRegistryAccountUsingExistentEmail() {
+    void shouldThrowExceptionWhenCreateAccountUsingExistentEmail() {
         String EXISTENT_MAIL = "john.doe@mail.com";
 
         NewAccountDTO newAccountDTO = NewAccountDTO.builder()
@@ -55,7 +55,7 @@ class AccountServiceTest {
     }
 
     @Test
-    void shouldThrowErrorWhenRegistryAccountUsingExistentPhoneNumber() {
+    void shouldThrowExceptionWhenCreateAccountUsingExistentPhoneNumber() {
         String EXISTENT_PHONE_NUMBER = "5582988990011";
 
         NewAccountDTO newAccountDTO = NewAccountDTO.builder()
@@ -72,7 +72,7 @@ class AccountServiceTest {
     }
 
     @Test
-    void shouldReturnAnAccountWhenRegistrySuccessfullyUsingNonExistentEmailOrPhoneNumber() {
+    void shouldCreateAnAccountWhenRegistrySuccessfullyUsingNonExistentEmailOrPhoneNumber() {
         Account actual = Account.builder()
             .id(1L)
             .name("John Doe")
