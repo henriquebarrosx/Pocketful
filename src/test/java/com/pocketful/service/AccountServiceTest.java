@@ -2,6 +2,7 @@ package com.pocketful.service;
 
 import com.pocketful.entity.Account;
 import com.pocketful.exception.ConflictException;
+import com.pocketful.exception.NotFoundException;
 import com.pocketful.repository.AccountRepository;
 import com.pocketful.web.dto.account.NewAccountDTO;
 
@@ -12,6 +13,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mock;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
+
+import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -35,6 +39,37 @@ class AccountServiceTest {
     @AfterEach
     void tearDown() throws Exception {
         closeable.close();
+    }
+
+    @Test
+    public void shouldGetAllAccounts() {
+        List<Account> accounts = List.of(
+            Account.builder()
+                .id(1L)
+                .name("John Doe")
+                .email("john.doe@mail.com")
+                .phoneNumber("5582988776655")
+                .build()
+        );
+
+        when(accountRepository.findAll())
+            .thenReturn(accounts);
+
+        assert(accountService.findAll())
+            .equals(accounts);
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenGetNotExistentById() {
+        when(accountRepository.findById(any(Long.class)))
+            .thenReturn(Optional.empty());
+
+        Exception exception = assertThrows(
+            NotFoundException.class,
+            () -> accountService.findById(1L)
+        );
+
+        assert(exception.getMessage()).equals("Account id do not exist.");
     }
 
     @Test
