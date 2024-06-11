@@ -97,12 +97,13 @@ class AccountControllerTest {
                 .phoneNumber("5582988776655")
                 .build();
 
-        accountRepository.save(account);
+        Account savedAccount = accountRepository.save(account);
+        Long accountId = savedAccount.getId();
 
         this.mockMvc.perform(get("/v1/accounts"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].id").exists())
+                .andExpect(jsonPath("$[0].id", is(accountId.intValue())))
                 .andExpect(jsonPath("$[0].name", is("John Doe")))
                 .andExpect(jsonPath("$[0].email", is("john.doe@mail.com")))
                 .andExpect(jsonPath("$[0].phoneNumber", is("5582988776655")));
