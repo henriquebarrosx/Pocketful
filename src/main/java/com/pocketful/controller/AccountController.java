@@ -32,6 +32,15 @@ public class AccountController {
                 .body(accounts);
     }
 
+    @GetMapping("{id}")
+    public ResponseEntity<AccountDTO> getBydId(@PathVariable Long id) {
+        Account account = accountService.findById(id);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(accountDTOMapper.apply(account));
+    }
+
     @PostMapping
     public ResponseEntity<AccountIdDTO> create(@RequestBody NewAccountDTO newAccountDTO) {
         Account account = accountService.create(newAccountDTO);
