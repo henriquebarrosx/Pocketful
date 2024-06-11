@@ -18,6 +18,7 @@ import com.pocketful.web.dto.account.NewAccountDTO;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static com.pocketful.ConcurrentTestHelper.doSyncAndConcurrently;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -59,8 +60,28 @@ class AccountControllerTest {
     }
 
     @Test
+    @DisplayName("não deve cadastrar nova conta com e-mail e número telefone repetido em alta-concorrência")
+    public void t2() {
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        NewAccountDTO request = NewAccountDTO.builder()
+                .email("john.doe@mail.com")
+                .phoneNumber("+5582991880022")
+                .name("John Doe")
+                .build();
+
+        doSyncAndConcurrently(3,
+                () -> this.mockMvc.perform(post("/v1/accounts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+        );
+
+        assertEquals(1, accountRepository.count());
+    }
+
+    @Test
     @DisplayName("deve retornar status 409 ao cadastrar conta com email e número de telefone já existentes")
-    public void t2() throws Exception {
+    public void t3() throws Exception {
         ObjectMapper objectMapper = new ObjectMapper();
 
         Account account = Account.builder()
