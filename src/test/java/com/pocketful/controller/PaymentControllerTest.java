@@ -1,9 +1,11 @@
 package com.pocketful.controller;
 
 import com.pocketful.entity.Account;
+import com.pocketful.entity.Payment;
 import com.pocketful.utils.AccountBuilder;
 import com.pocketful.utils.PaymentBuilder;
 import com.pocketful.entity.PaymentCategory;
+import com.pocketful.entity.PaymentFrequency;
 import com.pocketful.utils.PaymentCategoryBuilder;
 import com.pocketful.repository.AccountRepository;
 import com.pocketful.repository.PaymentRepository;
@@ -25,12 +27,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
@@ -173,5 +176,28 @@ class PaymentControllerTest {
 
         assertEquals(600, paymentRepository.count());
         assertEquals(1, paymentFrequencyRepository.count());
+    }
+
+    @Test
+    @DisplayName("Deve retornar 200 e buscar por todos pagamentos")
+    public void t8() throws Exception {
+        Account account = accountRepository.save(PaymentBuilder.buildPayment().getAccount());
+        PaymentCategory category = paymentCategoryRepository.save(PaymentBuilder.buildPayment().getPaymentCategory());
+        PaymentFrequency paymentFrequency = paymentFrequencyRepository.save(PaymentBuilder.buildPayment().getPaymentFrequency());
+        Payment payment = paymentRepository.save(PaymentBuilder.buildPayment(account, category, paymentFrequency));
+
+        mockMvc.perform(get("/v1/payments")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].id", is(payment.getId().intValue())))
+                .andExpect(jsonPath("$[0].amount", is(10.0)))
+                .andExpect(jsonPath("$[0].description", is("Uber")))
+                .andExpect(jsonPath("$[0].payed", is(false)))
+                .andExpect(jsonPath("$[0].expense", is(true)))
+                .andExpect(jsonPath("$[0].frequencyTimes", is(paymentFrequency.getTimes())))
+                .andExpect(jsonPath("$[0].deadlineAt", is("2024-10-01")))
+                .andExpect(jsonPath("$[0].paymentCategory.id", is(category.getId().intValue())))
+                .andExpect(jsonPath("$[0].paymentCategory.name", is("Saúde")));
     }
 }

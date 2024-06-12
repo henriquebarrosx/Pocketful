@@ -3,11 +3,39 @@ package com.pocketful.utils;
 import com.pocketful.entity.Account;
 import com.pocketful.entity.Payment;
 import com.pocketful.entity.PaymentCategory;
+import com.pocketful.entity.PaymentFrequency;
 import com.pocketful.web.dto.payment.NewPaymentDTO;
 
 import java.time.LocalDate;
 
 public class PaymentBuilder {
+    public static Payment buildPayment() {
+        return Payment.builder()
+                .id(1L)
+                .amount(10)
+                .description("Uber")
+                .payed(false)
+                .isExpense(true)
+                .deadlineAt(LocalDate.parse("2024-10-01"))
+                .account(AccountBuilder.buildAccount())
+                .paymentCategory(PaymentCategoryBuilder.buildPaymentCategory())
+                .paymentFrequency(PaymentFrequencyBuilder.buildPaymentFrequency())
+                .build();
+    }
+
+    public static Payment buildPayment(Account account, PaymentCategory paymentCategory, PaymentFrequency paymentFrequency) {
+        return Payment.builder()
+                .id(1L)
+                .amount(10)
+                .description("Uber")
+                .payed(false)
+                .isExpense(true)
+                .deadlineAt(LocalDate.parse("2024-10-01"))
+                .account(account)
+                .paymentCategory(paymentCategory)
+                .paymentFrequency(paymentFrequency)
+                .build();
+    }
 
     public static NewPaymentDTO buildNewPaymentRequest() {
         return NewPaymentDTO.builder()
