@@ -31,6 +31,15 @@ public class PaymentCategoryController {
                 .body(paymentCategories);
     }
 
+    @GetMapping("{id}")
+    public ResponseEntity<PaymentCategoryDTO> getById(@PathVariable Long id) {
+        PaymentCategory category = paymentCategoriesService.findById(id);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(paymentCategoryDTOMapper.apply(category));
+    }
+
     @PostMapping
     public ResponseEntity<PaymentCategoryDTO> create(@RequestBody NewPaymentCategoryDTO newPaymentCategoryDTO) {
         PaymentCategory paymentCategory = paymentCategoriesService
