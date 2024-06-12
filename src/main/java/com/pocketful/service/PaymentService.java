@@ -31,17 +31,17 @@ public class PaymentService {
 
     @Transactional
     public Payment create(NewPaymentDTO newPaymentDTO) {
+        Account account = accountService.findById(newPaymentDTO.getAccountId());
+
+        PaymentCategory paymentCategory = paymentCategoryService
+            .findById(newPaymentDTO.getPaymentCategoryId());
+
         if (!isValidAmount(newPaymentDTO.getAmount())) {
             throw new BadRequestException("Amount should be greater than 0.");
         }
 
         PaymentFrequency paymentFrequency = paymentFrequencyService
             .create(newPaymentDTO.getIsIndeterminate(), newPaymentDTO.getFrequencyTimes());
-
-        PaymentCategory paymentCategory = paymentCategoryService
-            .findById(newPaymentDTO.getPaymentCategoryId());
-
-        Account account = accountService.findById(newPaymentDTO.getAccountId());
 
         List<Payment> payments = new ArrayList<>();
 
@@ -64,6 +64,7 @@ public class PaymentService {
         }
 
         paymentRepository.saveAll(payments);
+
         return payments.stream().findFirst()
                 .orElseThrow(() -> new InternalServerErrorException("Something wrong when getting registered payment"));
     }

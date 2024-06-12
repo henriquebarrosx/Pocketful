@@ -1,12 +1,14 @@
 package com.pocketful.web.dto.payment;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDate;
 
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class NewPaymentDTO {
     private float amount;
     private String description;
