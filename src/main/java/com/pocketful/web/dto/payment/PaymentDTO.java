@@ -6,10 +6,8 @@ import lombok.*;
 import java.time.LocalDate;
 
 @Getter
-@Setter
 @Builder
 @AllArgsConstructor
-@NoArgsConstructor
 public class PaymentDTO {
     private Long id;
     private float amount;

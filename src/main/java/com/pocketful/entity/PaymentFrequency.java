@@ -10,7 +10,6 @@ import java.time.LocalDate;
 @Table(name = "payment_frequencies")
 @Entity
 @Getter
-@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

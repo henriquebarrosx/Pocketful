@@ -4,7 +4,6 @@ import lombok.*;
 
 @Getter
 @Setter
-@Builder
 @AllArgsConstructor
 public class AccountIdDTO {
     private final Long id;
