@@ -11,10 +11,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import com.pocketful.entity.Account;
+import com.pocketful.utils.AccountBuilder;
 import com.pocketful.repository.AccountRepository;
-import com.pocketful.web.dto.account.NewAccountDTO;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -34,25 +36,23 @@ class AccountControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    private ObjectMapper objectMapper;
+
     @BeforeEach
     public void setup() {
+        objectMapper = JsonMapper.builder()
+                .addModule(new JavaTimeModule())
+                .build();
+
         accountRepository.deleteAll();
     }
 
     @Test
     @DisplayName("deve retornar status 200 e id de conta cadastrada ao cadastrar conta com email e número de telefone inexistentes")
     public void t1() throws Exception {
-        ObjectMapper objectMapper = new ObjectMapper();
-
-        NewAccountDTO request = NewAccountDTO.builder()
-                .email("john.doe@mail.com")
-                .phoneNumber("+5582991880022")
-                .name("John Doe")
-                .build();
-
         this.mockMvc.perform(post("/v1/accounts")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(objectMapper.writeValueAsString(AccountBuilder.buildNewAccountRequest())))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").exists());
 
@@ -62,18 +62,10 @@ class AccountControllerTest {
     @Test
     @DisplayName("não deve cadastrar nova conta com e-mail e número telefone repetido em alta-concorrência")
     public void t2() {
-        ObjectMapper objectMapper = new ObjectMapper();
-
-        NewAccountDTO request = NewAccountDTO.builder()
-                .email("john.doe@mail.com")
-                .phoneNumber("+5582991880022")
-                .name("John Doe")
-                .build();
-
         doSyncAndConcurrently(3,
                 () -> this.mockMvc.perform(post("/v1/accounts")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(objectMapper.writeValueAsString(AccountBuilder.buildNewAccountRequest())))
         );
 
         assertEquals(1, accountRepository.count());
@@ -82,26 +74,11 @@ class AccountControllerTest {
     @Test
     @DisplayName("deve retornar status 409 ao cadastrar conta com email e número de telefone já existentes")
     public void t3() throws Exception {
-        ObjectMapper objectMapper = new ObjectMapper();
-
-        Account account = Account.builder()
-                .id(1L)
-                .name("John Doe")
-                .email("john.doe@mail.com")
-                .phoneNumber("5582988776655")
-                .build();
-
-        accountRepository.save(account);
-
-        NewAccountDTO request = NewAccountDTO.builder()
-                .email("john.doe@mail.com")
-                .phoneNumber("+5582991880022")
-                .name("John Doe")
-                .build();
+        accountRepository.save(AccountBuilder.buildAccount());
 
         this.mockMvc.perform(post("/v1/accounts")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(objectMapper.writeValueAsString(AccountBuilder.buildNewAccountRequest())))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").value("An account with this email or phone number already exists."));
 
@@ -111,20 +88,12 @@ class AccountControllerTest {
     @Test
     @DisplayName("deve retornar status 200 e lista contendo N usuários")
     public void t4() throws Exception {
-        Account account = Account.builder()
-                .id(1L)
-                .name("John Doe")
-                .email("john.doe@mail.com")
-                .phoneNumber("5582988776655")
-                .build();
-
-        Account savedAccount = accountRepository.save(account);
-        Long accountId = savedAccount.getId();
+        Account account = accountRepository.save(AccountBuilder.buildAccount());
 
         this.mockMvc.perform(get("/v1/accounts"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].id", is(accountId.intValue())))
+                .andExpect(jsonPath("$[0].id", is(account.getId().intValue())))
                 .andExpect(jsonPath("$[0].name", is("John Doe")))
                 .andExpect(jsonPath("$[0].email", is("john.doe@mail.com")))
                 .andExpect(jsonPath("$[0].phoneNumber", is("5582988776655")));
@@ -141,19 +110,11 @@ class AccountControllerTest {
     @Test
     @DisplayName("deve retornar status 200 e 1 conta existente")
     public void t6() throws Exception {
-        Account account = Account.builder()
-                .id(1L)
-                .name("John Doe")
-                .email("john.doe@mail.com")
-                .phoneNumber("5582988776655")
-                .build();
+        Account account = accountRepository.save(AccountBuilder.buildAccount());
 
-        Account savedAccount = accountRepository.save(account);
-        Long accountId = savedAccount.getId();
-
-        this.mockMvc.perform(get("/v1/accounts/" + accountId))
+        this.mockMvc.perform(get("/v1/accounts/" + account.getId().intValue()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(accountId.intValue())))
+                .andExpect(jsonPath("$.id", is(account.getId().intValue())))
                 .andExpect(jsonPath("$.name", is("John Doe")))
                 .andExpect(jsonPath("$.email", is("john.doe@mail.com")))
                 .andExpect(jsonPath("$.phoneNumber", is("5582988776655")));

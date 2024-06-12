@@ -1,9 +1,13 @@
 package com.pocketful.controller;
 
 import com.pocketful.entity.PaymentCategory;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pocketful.utils.PaymentCategoryBuilder;
 import com.pocketful.repository.PaymentCategoryRepository;
 import com.pocketful.web.dto.payment_category.NewPaymentCategoryDTO;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,8 +18,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-
-import java.time.LocalDate;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -36,30 +38,26 @@ class PaymentCategoryControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    private ObjectMapper objectMapper;
+
     @BeforeEach
     public void setup() {
+        objectMapper = JsonMapper.builder()
+                .addModule(new JavaTimeModule())
+                .build();
+
         repository.deleteAll();
     }
 
     @Test
     @DisplayName("deve retornar 409 ao cadastrar categoria já existente")
     public void t1() throws Exception {
-        ObjectMapper objectMapper = new ObjectMapper();
         NewPaymentCategoryDTO request = new NewPaymentCategoryDTO("Saúde");
+        repository.save(PaymentCategoryBuilder.buildPaymentCategory());
 
-        PaymentCategory category = PaymentCategory.builder()
-                .id(1L)
-                .name("Saúde")
-                .createdAt(LocalDate.now())
-                .updatedAt(LocalDate.now())
-                .build();
-
-        repository.save(category);
-
-        mockMvc.perform(
-                        post("/v1/payments/categories")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request)))
+        mockMvc.perform(post("/v1/payments/categories")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message", is("Payment category already exists.")));
 
@@ -69,13 +67,11 @@ class PaymentCategoryControllerTest {
     @Test
     @DisplayName("deve retornar 201 ao cadastrar categoria não já existente")
     public void t2() throws Exception {
-        ObjectMapper objectMapper = new ObjectMapper();
         NewPaymentCategoryDTO request = new NewPaymentCategoryDTO("Saúde");
 
-        mockMvc.perform(
-                        post("/v1/payments/categories")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request)))
+        mockMvc.perform(post("/v1/payments/categories")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").exists());
 
@@ -85,13 +81,11 @@ class PaymentCategoryControllerTest {
     @Test
     @DisplayName("deve retornar 404 ao editar categoria inexistente")
     public void t3() throws Exception {
-        ObjectMapper objectMapper = new ObjectMapper();
         NewPaymentCategoryDTO request = new NewPaymentCategoryDTO("Saúde");
 
-        mockMvc.perform(
-                        put("/v1/payments/categories/1")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request)))
+        mockMvc.perform(put("/v1/payments/categories/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message", is("Payment Category not found")));
 
@@ -101,22 +95,12 @@ class PaymentCategoryControllerTest {
     @Test
     @DisplayName("deve retornar 409 ao editar uma categoria com nome repetido")
     public void t4() throws Exception {
-        ObjectMapper objectMapper = new ObjectMapper();
         NewPaymentCategoryDTO request = new NewPaymentCategoryDTO("Saúde");
+        PaymentCategory paymentCategory = repository.save(PaymentCategoryBuilder.buildPaymentCategory());
 
-        PaymentCategory category = PaymentCategory.builder()
-                .id(1L)
-                .name("Saúde")
-                .createdAt(LocalDate.now())
-                .updatedAt(LocalDate.now())
-                .build();
-
-        PaymentCategory paymentCategory = repository.save(category);
-
-        mockMvc.perform(
-                        put("/v1/payments/categories/" + paymentCategory.getId().intValue())
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request)))
+        mockMvc.perform(put("/v1/payments/categories/" + paymentCategory.getId().intValue())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message", is("Payment category already exists.")));
 
@@ -126,22 +110,12 @@ class PaymentCategoryControllerTest {
     @Test
     @DisplayName("deve retornar 200 ao editar uma categoria existente com nome não repetido")
     public void t5() throws Exception {
-        ObjectMapper objectMapper = new ObjectMapper();
         NewPaymentCategoryDTO request = new NewPaymentCategoryDTO("Cartão de Crédito");
+        PaymentCategory paymentCategory = repository.save(PaymentCategoryBuilder.buildPaymentCategory());
 
-        PaymentCategory category = PaymentCategory.builder()
-                .id(1L)
-                .name("Saúde")
-                .createdAt(LocalDate.now())
-                .updatedAt(LocalDate.now())
-                .build();
-
-        PaymentCategory paymentCategory = repository.save(category);
-
-        mockMvc.perform(
-                        put("/v1/payments/categories/" + paymentCategory.getId().intValue())
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request)))
+        mockMvc.perform(put("/v1/payments/categories/" + paymentCategory.getId().intValue())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(paymentCategory.getId().intValue())))
                 .andExpect(jsonPath("$.name", is("Cartão de Crédito")));
@@ -152,9 +126,8 @@ class PaymentCategoryControllerTest {
     @Test
     @DisplayName("deve retornar 404 ao buscar por categoria inexistente")
     public void t6() throws Exception {
-        mockMvc.perform(
-                        get("/v1/payments/categories/1")
-                                .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/v1/payments/categories/1")
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message", is("Payment Category not found")));
     }
@@ -162,18 +135,10 @@ class PaymentCategoryControllerTest {
     @Test
     @DisplayName("deve retornar 200 ao buscar por categoria existente")
     public void t7() throws Exception {
-        PaymentCategory category = PaymentCategory.builder()
-                .id(1L)
-                .name("Saúde")
-                .createdAt(LocalDate.now())
-                .updatedAt(LocalDate.now())
-                .build();
+        PaymentCategory paymentCategory = repository.save(PaymentCategoryBuilder.buildPaymentCategory());
 
-        PaymentCategory paymentCategory = repository.save(category);
-
-        mockMvc.perform(
-                        get("/v1/payments/categories/" + paymentCategory.getId().intValue())
-                                .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/v1/payments/categories/" + paymentCategory.getId().intValue())
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(paymentCategory.getId().intValue())))
                 .andExpect(jsonPath("$.name", is("Saúde")));
@@ -182,18 +147,10 @@ class PaymentCategoryControllerTest {
     @Test
     @DisplayName("deve retornar 200 ao buscar por todas categorias existente")
     public void t8() throws Exception {
-        PaymentCategory category = PaymentCategory.builder()
-                .id(1L)
-                .name("Saúde")
-                .createdAt(LocalDate.now())
-                .updatedAt(LocalDate.now())
-                .build();
+        PaymentCategory paymentCategory = repository.save(PaymentCategoryBuilder.buildPaymentCategory());
 
-        PaymentCategory paymentCategory = repository.save(category);
-
-        mockMvc.perform(
-                        get("/v1/payments/categories")
-                                .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/v1/payments/categories")
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].id", is(paymentCategory.getId().intValue())))
@@ -203,9 +160,8 @@ class PaymentCategoryControllerTest {
     @Test
     @DisplayName("deve retornar 404 ao deletar categoria inexistente")
     public void t9() throws Exception {
-        mockMvc.perform(
-                        delete("/v1/payments/categories/1")
-                                .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(delete("/v1/payments/categories/1")
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message", is("Payment Category not found")));
 
@@ -215,18 +171,10 @@ class PaymentCategoryControllerTest {
     @Test
     @DisplayName("deve retornar 204 ao deletar categoria existente")
     public void t10() throws Exception {
-        PaymentCategory category = PaymentCategory.builder()
-                .id(1L)
-                .name("Saúde")
-                .createdAt(LocalDate.now())
-                .updatedAt(LocalDate.now())
-                .build();
+        PaymentCategory paymentCategory = repository.save(PaymentCategoryBuilder.buildPaymentCategory());
 
-        PaymentCategory paymentCategory = repository.save(category);
-
-        mockMvc.perform(
-                        delete("/v1/payments/categories/" + paymentCategory.getId().intValue())
-                                .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(delete("/v1/payments/categories/" + paymentCategory.getId().intValue())
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
 
         assertEquals(0, repository.count());
