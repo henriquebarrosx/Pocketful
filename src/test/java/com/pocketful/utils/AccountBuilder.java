@@ -20,4 +20,12 @@ public class AccountBuilder {
                 .name("John Doe")
                 .build();
     }
+
+    public static NewAccountDTO buildNewAccountRequest(String phoneNumber) {
+        return NewAccountDTO.builder()
+                .email("john.doe@mail.com")
+                .phoneNumber(phoneNumber)
+                .name("John Doe")
+                .build();
+    }
 }

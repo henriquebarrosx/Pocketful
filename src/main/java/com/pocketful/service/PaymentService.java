@@ -72,4 +72,9 @@ public class PaymentService {
     private Boolean isValidAmount(float amount) {
         return amount > 0;
     }
+
+    public List<Payment> findPendingPaymentsByDate(LocalDate date) {
+        return paymentRepository
+                .findAllByDeadlineAtAndPayedIsFalseAndIsExpenseIsTrue(date);
+    }
 }

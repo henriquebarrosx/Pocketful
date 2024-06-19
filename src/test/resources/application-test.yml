@@ -19,3 +19,12 @@ spring:
   sql:
     init:
       mode: always
+
+  batch:
+    job:
+      enabled: false
+
+sms:
+  account_sid: 000
+  service_sid: 000
+  auth_token: 000

@@ -86,8 +86,22 @@ class AccountControllerTest {
     }
 
     @Test
-    @DisplayName("deve retornar status 200 e lista contendo N usuários")
+    @DisplayName("deve retornar status 400 ao cadastrar conta com número de telefone inválido")
     public void t4() throws Exception {
+        String invalidPhoneNumber = "5582988772211";
+
+        this.mockMvc.perform(post("/v1/accounts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(AccountBuilder.buildNewAccountRequest(invalidPhoneNumber))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Invalid account phone number. Please, provide valid country (Ex.: +55) and DDD number."));
+
+        assertEquals(0, accountRepository.count());
+    }
+
+    @Test
+    @DisplayName("deve retornar status 200 e lista contendo N usuários")
+    public void t5() throws Exception {
         Account account = accountRepository.save(AccountBuilder.buildAccount());
 
         this.mockMvc.perform(get("/v1/accounts"))
@@ -101,7 +115,7 @@ class AccountControllerTest {
 
     @Test
     @DisplayName("deve retornar status 404 quando não encontrar conta com pelo ID")
-    public void t5() throws Exception {
+    public void t6() throws Exception {
         this.mockMvc.perform(get("/v1/accounts/1"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("Account id do not exist."));
@@ -109,7 +123,7 @@ class AccountControllerTest {
 
     @Test
     @DisplayName("deve retornar status 200 e 1 conta existente")
-    public void t6() throws Exception {
+    public void t7() throws Exception {
         Account account = accountRepository.save(AccountBuilder.buildAccount());
 
         this.mockMvc.perform(get("/v1/accounts/" + account.getId().intValue()))
