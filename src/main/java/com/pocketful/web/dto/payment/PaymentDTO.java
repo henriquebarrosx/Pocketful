@@ -15,6 +15,6 @@ public class PaymentDTO {
     private boolean payed;
     private boolean isExpense;
     private int frequencyTimes;
-    private LocalDate deadlineAt;
+    private String deadlineAt;
     private PaymentCategoryDTO paymentCategory;
 }

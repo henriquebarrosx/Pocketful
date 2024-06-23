@@ -5,6 +5,7 @@ import com.pocketful.web.dto.payment.PaymentDTO;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.format.DateTimeFormatter;
 import java.util.function.Function;
 
 @AllArgsConstructor
@@ -20,7 +21,7 @@ public class PaymentDTOMapper implements Function<Payment, PaymentDTO> {
                 .payed(payment.getPayed())
                 .amount(payment.getAmount())
                 .isExpense(payment.getIsExpense())
-                .deadlineAt(payment.getDeadlineAt())
+                .deadlineAt(DateTimeFormatter.ofPattern("yyyy-MM-dd").format(payment.getDeadlineAt()))
                 .paymentCategory(paymentCategoryDTOMapper.apply(payment.getPaymentCategory()))
                 .frequencyTimes(payment.getPaymentFrequency().getTimes())
                 .build();

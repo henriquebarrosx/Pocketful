@@ -7,6 +7,7 @@ import com.pocketful.entity.PaymentFrequency;
 import com.pocketful.web.dto.payment.NewPaymentDTO;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 public class PaymentBuilder {
     public static Payment buildPayment() {
@@ -30,7 +31,7 @@ public class PaymentBuilder {
                 .description("Uber")
                 .payed(false)
                 .isExpense(true)
-                .deadlineAt(LocalDate.parse("2024-10-01"))
+                .deadlineAt(LocalDate.parse("2024-10-01", DateTimeFormatter.ofPattern("yyyy-MM-dd")))
                 .account(account)
                 .paymentCategory(paymentCategory)
                 .paymentFrequency(paymentFrequency)
