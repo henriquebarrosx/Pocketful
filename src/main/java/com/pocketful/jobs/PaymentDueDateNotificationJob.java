@@ -1,29 +1,33 @@
 package com.pocketful.jobs;
 
+import com.pocketful.entity.Account;
 import com.pocketful.entity.Currency;
 import com.pocketful.entity.Payment;
+import com.pocketful.service.EmailService;
 import com.pocketful.service.PaymentService;
-import com.pocketful.service.SmsNotificationService;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Profile;
+import freemarker.template.Template;
+import com.pocketful.web.view.payment.PaymentModel;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
-import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.time.LocalDate;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
-@Profile("!test")
 @AllArgsConstructor
 @EnableScheduling
 @Configuration
 public class PaymentDueDateNotificationJob {
+    private final EmailService emailService;
     private final PaymentService paymentService;
-    private final SmsNotificationService smsNotificationService;
 
     @Scheduled(fixedRate = 1800000)
     public void notifyInDeadlineDay() {
@@ -31,26 +35,35 @@ public class PaymentDueDateNotificationJob {
     }
 
     private void notifyPendingPaymentsByDate(LocalDate date) {
-        boolean isToday = date.isEqual(LocalDate.now());
         List<Payment> payments = paymentService.findPendingPaymentsByDate(date);
 
-        payments.forEach(payment -> {
-            Currency currency = new Currency(payment.getAmount());
-            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        Map<Account, List<Payment>> paymentsByAccounts = payments.stream()
+                .collect(Collectors.groupingBy(Payment::getAccount));
 
-            String message = isToday
-                    ? "Olá, %s. %s no valor de %s está para vencer hoje %s."
-                    : "Olá, %s. %s no valor de %s está para vencer dia %s.";
+        paymentsByAccounts.forEach((account, paymentList) -> {
+            String to = account.getEmail();
+            String subject = "Lembrete de Vencimento";
+            Template template = emailService.getTemplate("email.ftl");
 
-            String template = String.format(
-                    message,
-                    payment.getAccount().getName(),
-                    payment.getDescription(),
-                    currency.getValue(),
-                    dateTimeFormatter.format(payment.getDeadlineAt())
-            );
+            List<PaymentModel> paymentsModel = paymentList.stream()
+                    .map(payment -> {
+                        Currency currency = new Currency(payment.getAmount());
+                        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-            smsNotificationService.send(template, payment.getAccount());
+                        return PaymentModel.builder()
+                                .description(payment.getDescription())
+                                .deadlineAt(dateTimeFormatter.format(payment.getDeadlineAt()))
+                                .amount(currency.getValue())
+                                .isOverdue(payment.getDeadlineAt().isBefore(date))
+                                .build();
+                    })
+                    .toList();
+
+            Map<String, Object> model = new HashMap<>();
+            model.put("account", account);
+            model.put("payments", paymentsModel);
+
+            emailService.send(to, subject, template, model);
         });
     }
 }
