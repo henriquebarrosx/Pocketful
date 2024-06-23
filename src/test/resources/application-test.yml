@@ -24,7 +24,17 @@ spring:
     job:
       enabled: false
 
-sms:
-  account_sid: 000
-  service_sid: 000
-  auth_token: 000
+  mail:
+    host: sandbox.smtp.io
+    username: admin
+    password: admin
+    properties:
+      mail:
+        transport:
+          protocol: smtp
+        smtp:
+          port: 25
+          auth: true
+          starttls:
+            enable: true
+            required: true
