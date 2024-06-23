@@ -75,6 +75,6 @@ public class PaymentService {
 
     public List<Payment> findPendingPaymentsByDate(LocalDate date) {
         return paymentRepository
-                .findAllByDeadlineAtAndPayedIsFalseAndIsExpenseIsTrue(date);
+                .findAllByDeadlineAtLessThanEqualAndPayedIsFalseAndIsExpenseIsTrue(date);
     }
 }

@@ -7,5 +7,5 @@ import java.util.List;
 import java.time.LocalDate;
 
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
-    List<Payment> findAllByDeadlineAtAndPayedIsFalseAndIsExpenseIsTrue(LocalDate date);
+    List<Payment> findAllByDeadlineAtLessThanEqualAndPayedIsFalseAndIsExpenseIsTrue(LocalDate date);
 }
