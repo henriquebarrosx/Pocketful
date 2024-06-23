@@ -21,11 +21,29 @@ services:
         image: rabbitmq:3-management-alpine
         container_name: 'rabbitmq'
         ports:
-            - 5672:5672
-            - 15672:15672
+            - "5672:5672"
+            - "15672:15672"
         volumes:
             - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
             - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
+        networks:
+            - app-network
+
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        ports:
+            - "8080:8080"
+        environment:
+            SPRING_PROFILES_ACTIVE: "default"
+            MAIL_HOST: "sandbox.smtp.mailtrap.io"
+            MAIL_USERNAME: "04f7c522026d17"
+            MAIL_PASSWORD: "63a2faa1e62b5cdo"
+            MAIL_PROTOCOL: "smtp"
+            MAIL_PORT: "25"
+        depends_on:
+            - db
         networks:
             - app-network
 

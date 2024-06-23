@@ -18,15 +18,15 @@ spring:
     baseline-on-migrate: true
 
   mail:
-    host: ${MAIL_HOST}
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
+    host: sandbox.smtp.mailtrap.io
+    username: 04f7c522026d17
+    password: 63a2faa1e62b5c
     properties:
       mail:
         transport:
-          protocol: ${MAIL_PROTOCOL}
+          protocol: smtp
         smtp:
-          port: ${MAIL_PORT}
+          port: 25
           auth: true
           starttls:
             enable: true
