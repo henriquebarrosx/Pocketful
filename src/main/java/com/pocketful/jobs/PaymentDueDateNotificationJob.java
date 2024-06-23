@@ -29,7 +29,7 @@ public class PaymentDueDateNotificationJob {
     private final EmailService emailService;
     private final PaymentService paymentService;
 
-    @Scheduled(fixedRate = 1800000)
+    @Scheduled(cron = "0 0 8 * * *")
     public void notifyInDeadlineDay() {
         notifyPendingPaymentsByDate(LocalDate.now());
     }
