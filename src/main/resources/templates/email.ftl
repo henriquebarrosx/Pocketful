@@ -145,6 +145,8 @@
 </head>
 <body>
 
+<#-- Template DOC: https://www.baeldung.com/freemarker-operations -->
+
 <div class="background">
     <h1>Lembrete de vencimento</h1>
 </div>
