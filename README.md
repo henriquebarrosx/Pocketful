@@ -12,14 +12,14 @@
 ```
 DATABASE_NAME=pocketful
 DATABASE_URL=jdbc:postgresql://db:5432/pocketful
-DATABASE_USERNAME=postgres
-DATABASE_PASSWORD=postgres
+DATABASE_USERNAME=
+DATABASE_PASSWORD=
 
-MAIL_HOST=sandbox.smtp.host.io
-MAIL_USERNAME=username
-MAIL_PASSWORD=password
-MAIL_PROTOCOL=smtp
-MAIL_PORT=2525
+MAIL_HOST=
+MAIL_USERNAME=
+MAIL_PASSWORD=
+MAIL_PROTOCOL=
+MAIL_PORT=
 ```
 
 - Build project using Docker:
