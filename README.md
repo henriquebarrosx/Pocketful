@@ -1,7 +1,29 @@
-<h1 align="center">💰 Pocketful</h1>
-<p align="center">A Rest Java API for expenses management</p>
+<h1 style="display: flex; justify-content: center">💰 Pocketful</h1>
+<p style="display: flex; justify-content: center">A Rest Java API for expenses management</p>
 
-### ⚙️ Tooling
+### 🔧 Tooling
 
-- [Java JDK (17)](https://www.oracle.com/br/java/technologies/downloads/#java17)
-- [PostgreSQL 16.1](https://hub.docker.com/_/postgres)
+- [Docker](https://docs.docker.com/desktop/)
+
+### ⚙️  Running
+
+- Create a .env file using the example below:
+
+```
+DATABASE_NAME=pocketful
+DATABASE_URL=jdbc:postgresql://db:5432/pocketful
+DATABASE_USERNAME=
+DATABASE_PASSWORD=
+
+MAIL_HOST=
+MAIL_USERNAME=
+MAIL_PASSWORD=
+MAIL_PROTOCOL=
+MAIL_PORT=
+```
+
+- Build project using Docker:
+
+```
+docker compose up
+```
