@@ -1,27 +1,31 @@
 package com.pocketful.service;
 
-import com.pocketful.entity.Account;
-import com.pocketful.entity.Payment;
-import com.pocketful.entity.PaymentCategory;
-import com.pocketful.entity.PaymentFrequency;
+import com.pocketful.entity.*;
 import com.pocketful.exception.BadRequestException;
 import com.pocketful.exception.InternalServerErrorException;
 import com.pocketful.repository.PaymentRepository;
 import com.pocketful.web.dto.payment.NewPaymentDTO;
+import com.pocketful.web.view.payment.PaymentModel;
+import freemarker.template.Template;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Service
 public class PaymentService {
     private final PaymentRepository paymentRepository;
-    private final PaymentCategoryService paymentCategoryService;
     private final AccountService accountService;
+    private final EmailService emailService;
+    private final PaymentCategoryService paymentCategoryService;
     private final PaymentFrequencyService paymentFrequencyService;
 
 
@@ -34,14 +38,14 @@ public class PaymentService {
         Account account = accountService.findById(newPaymentDTO.getAccountId());
 
         PaymentCategory paymentCategory = paymentCategoryService
-            .findById(newPaymentDTO.getPaymentCategoryId());
+                .findById(newPaymentDTO.getPaymentCategoryId());
 
         if (!isValidAmount(newPaymentDTO.getAmount())) {
             throw new BadRequestException("Amount should be greater than 0.");
         }
 
         PaymentFrequency paymentFrequency = paymentFrequencyService
-            .create(newPaymentDTO.getIsIndeterminate(), newPaymentDTO.getFrequencyTimes());
+                .create(newPaymentDTO.getIsIndeterminate(), newPaymentDTO.getFrequencyTimes());
 
         List<Payment> payments = new ArrayList<>();
 
@@ -73,8 +77,39 @@ public class PaymentService {
         return amount > 0;
     }
 
-    public List<Payment> findPendingPaymentsByDate(LocalDate date) {
-        return paymentRepository
+    public void notifyPendingPaymentsByDate(LocalDate date) {
+        List<Payment> payments = paymentRepository
                 .findAllByDeadlineAtLessThanEqualAndPayedIsFalseAndIsExpenseIsTrue(date);
+
+        Map<Account, List<Payment>> paymentsByAccounts = payments.stream()
+                .collect(Collectors.groupingBy(Payment::getAccount));
+
+        paymentsByAccounts.forEach((account, paymentList) -> {
+            String to = account.getEmail();
+            String subject = "Lembrete de Vencimento";
+            Template template = emailService.getTemplate("email.ftl");
+
+            List<PaymentModel> paymentsModel = paymentList.stream()
+                    .map(payment -> convertPaymentToModel(payment, date))
+                    .toList();
+
+            Map<String, Object> model = new HashMap<>();
+            model.put("account", account);
+            model.put("payments", paymentsModel);
+
+            emailService.send(to, subject, template, model);
+        });
+    }
+
+    private PaymentModel convertPaymentToModel(Payment payment, LocalDate date) {
+        Currency currency = new Currency(payment.getAmount());
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+        return PaymentModel.builder()
+                .description(payment.getDescription())
+                .deadlineAt(dateTimeFormatter.format(payment.getDeadlineAt()))
+                .amount(currency.getValue())
+                .isOverdue(payment.getDeadlineAt().isBefore(date))
+                .build();
     }
 }
