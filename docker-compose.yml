@@ -5,13 +5,12 @@ services:
         image: postgres
         restart: always
         shm_size: 128mb
-        container_name: 'postgresql'
         ports:
             - "5432:5432"
         environment:
-            POSTGRES_DB: "pocketful"
-            POSTGRES_USER: "postgres"
-            POSTGRES_PASSWORD: "postgres"
+            POSTGRES_DB: ${DATABASE_NAME}
+            POSTGRES_USER: ${DATABASE_USERNAME}
+            POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
         volumes:
             - pgdata:/var/lib/postgresql/data
         networks:
@@ -36,14 +35,18 @@ services:
         ports:
             - "8080:8080"
         environment:
-            SPRING_PROFILES_ACTIVE: "default"
-            MAIL_HOST: "sandbox.smtp.mailtrap.io"
-            MAIL_USERNAME: "04f7c522026d17"
-            MAIL_PASSWORD: "63a2faa1e62b5cdo"
-            MAIL_PROTOCOL: "smtp"
-            MAIL_PORT: "25"
+            SPRING_PROFILES_ACTIVE: default
+            DATABASE_URL: ${DATABASE_URL}
+            DATABASE_USERNAME: ${DATABASE_USERNAME}
+            DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+            MAIL_HOST: ${MAIL_HOST}
+            MAIL_USERNAME: ${MAIL_USERNAME}
+            MAIL_PASSWORD: ${MAIL_PASSWORD}
+            MAIL_PROTOCOL: ${MAIL_PROTOCOL}
+            MAIL_PORT: ${MAIL_PORT}
         depends_on:
             - db
+            - rabbitmq
         networks:
             - app-network
 
