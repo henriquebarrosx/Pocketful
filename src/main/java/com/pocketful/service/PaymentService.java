@@ -1,5 +1,6 @@
 package com.pocketful.service;
 
+import com.pocketful.entity.Currency;
 import com.pocketful.entity.*;
 import com.pocketful.exception.BadRequestException;
 import com.pocketful.exception.InternalServerErrorException;
@@ -13,24 +14,27 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Service
 public class PaymentService {
-    private final PaymentRepository paymentRepository;
-    private final AccountService accountService;
     private final EmailService emailService;
+    private final AccountService accountService;
+    private final PaymentRepository paymentRepository;
     private final PaymentCategoryService paymentCategoryService;
     private final PaymentFrequencyService paymentFrequencyService;
 
 
-    public List<Payment> findAll() {
-        return paymentRepository.findAll();
+    public List<Payment> findBy(LocalDate startAt, LocalDate endAt) {
+        LocalDate MIN_DATE = LocalDate.of(1970, 1, 1);
+        LocalDate MAX_DATE = LocalDate.of(9999, 1, 1);
+
+        return paymentRepository.findAllByDeadlineAtBetween(
+            Objects.isNull(startAt) ? MIN_DATE : startAt,
+            Objects.isNull(endAt) ? MAX_DATE : endAt
+        );
     }
 
     @Transactional

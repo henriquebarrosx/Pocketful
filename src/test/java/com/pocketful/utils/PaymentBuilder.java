@@ -52,6 +52,19 @@ public class PaymentBuilder {
                 .build();
     }
 
+    public static Payment buildPayment(Account account, PaymentCategory paymentCategory, PaymentFrequency paymentFrequency, String deadlineAt) {
+        return Payment.builder()
+            .amount(10)
+            .description("Uber")
+            .payed(false)
+            .isExpense(true)
+            .deadlineAt(LocalDate.parse(deadlineAt, DateTimeFormatter.ofPattern("yyyy-MM-dd")))
+            .account(account)
+            .paymentCategory(paymentCategory)
+            .paymentFrequency(paymentFrequency)
+            .build();
+    }
+
     public static NewPaymentDTO buildNewPaymentRequest() {
         return NewPaymentDTO.builder()
                 .amount(10)

@@ -1,39 +1,39 @@
 package com.pocketful.controller;
 
-import com.pocketful.entity.Account;
-import com.pocketful.entity.Payment;
-import com.pocketful.utils.AccountBuilder;
-import com.pocketful.utils.PaymentBuilder;
-import com.pocketful.entity.PaymentCategory;
-import com.pocketful.entity.PaymentFrequency;
-import com.pocketful.utils.PaymentCategoryBuilder;
-import com.pocketful.repository.AccountRepository;
-import com.pocketful.repository.PaymentRepository;
-import com.pocketful.web.dto.payment.NewPaymentDTO;
-import com.pocketful.repository.PaymentCategoryRepository;
-import com.pocketful.repository.PaymentFrequencyRepository;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-
-import org.junit.jupiter.api.Test;
+import com.pocketful.entity.Account;
+import com.pocketful.entity.Payment;
+import com.pocketful.entity.PaymentCategory;
+import com.pocketful.entity.PaymentFrequency;
+import com.pocketful.repository.AccountRepository;
+import com.pocketful.repository.PaymentCategoryRepository;
+import com.pocketful.repository.PaymentFrequencyRepository;
+import com.pocketful.repository.PaymentRepository;
+import com.pocketful.utils.AccountBuilder;
+import com.pocketful.utils.PaymentBuilder;
+import com.pocketful.utils.PaymentCategoryBuilder;
+import com.pocketful.web.dto.payment.NewPaymentDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
 
-import static org.hamcrest.Matchers.is;
+import java.util.List;
+
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
@@ -199,5 +199,30 @@ class PaymentControllerTest {
                 .andExpect(jsonPath("$[0].deadlineAt", is("2024-10-01")))
                 .andExpect(jsonPath("$[0].paymentCategory.id", is(category.getId().intValue())))
                 .andExpect(jsonPath("$[0].paymentCategory.name", is("Saúde")));
+    }
+
+    @Test
+    @DisplayName("Deve retornar 200 e buscar por todos pagamentos entre duas datas")
+    public void t9() throws Exception {
+        Account account = accountRepository.save(PaymentBuilder.buildPayment().getAccount());
+        PaymentCategory category = paymentCategoryRepository.save(PaymentBuilder.buildPayment().getPaymentCategory());
+        PaymentFrequency paymentFrequency = paymentFrequencyRepository.save(PaymentBuilder.buildPayment().getPaymentFrequency());
+
+        paymentRepository.saveAll(
+          List.of(
+              PaymentBuilder.buildPayment(account, category, paymentFrequency, "2024-05-01"),
+              PaymentBuilder.buildPayment(account, category, paymentFrequency, "2024-06-05"),
+              PaymentBuilder.buildPayment(account, category, paymentFrequency, "2024-06-10"),
+              PaymentBuilder.buildPayment(account, category, paymentFrequency, "2024-07-15")
+          )
+        );
+
+        String startDate = "2024-06-01";
+        String endDate = "2024-06-30";
+
+        mockMvc.perform(get(String.format("/v1/payments?startAt=%s&endAt=%s", startDate, endDate))
+                .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", hasSize(2)));
     }
 }
