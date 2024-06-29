@@ -6,12 +6,12 @@ import com.pocketful.web.dto.payment.NewPaymentDTO;
 import com.pocketful.web.dto.payment.PaymentDTO;
 import com.pocketful.web.dto.payment.PaymentIdDTO;
 import com.pocketful.web.mapper.PaymentDTOMapper;
-
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @AllArgsConstructor
@@ -41,5 +41,14 @@ public class PaymentController {
                 .status(HttpStatus.CREATED)
                 .body(new PaymentIdDTO(payment.getId()));
 
+    }
+
+    @GetMapping("/send-email")
+    public ResponseEntity<Void> sendEmail() {
+        paymentService.notifyPendingPaymentsByDate(LocalDate.now());
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .build();
     }
 }
