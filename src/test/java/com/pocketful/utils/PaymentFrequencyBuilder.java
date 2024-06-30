@@ -13,4 +13,13 @@ public class PaymentFrequencyBuilder {
                 .updatedAt(LocalDate.now())
                 .build();
     }
+
+    public static PaymentFrequency buildPaymentFrequency(int times) {
+        return PaymentFrequency.builder()
+                .id(1L)
+                .times(times)
+                .createdAt(LocalDate.now())
+                .updatedAt(LocalDate.now())
+                .build();
+    }
 }

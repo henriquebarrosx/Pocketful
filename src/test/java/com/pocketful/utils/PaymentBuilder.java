@@ -24,6 +24,20 @@ public class PaymentBuilder {
                 .build();
     }
 
+    public static Payment buildPayment(PaymentFrequency frequency) {
+        return Payment.builder()
+                .id(1L)
+                .amount(10)
+                .description("Uber")
+                .payed(false)
+                .isExpense(true)
+                .deadlineAt(LocalDate.parse("2024-10-01"))
+                .account(AccountBuilder.buildAccount())
+                .paymentCategory(PaymentCategoryBuilder.buildPaymentCategory())
+                .paymentFrequency(frequency)
+                .build();
+    }
+
     public static Payment buildPayment(Long id, LocalDate deadlineAt, Account account) {
         return Payment.builder()
                 .id(id)

@@ -2,8 +2,10 @@ package com.pocketful.service;
 
 import com.pocketful.entity.Account;
 import com.pocketful.entity.Payment;
+import com.pocketful.entity.PaymentFrequency;
 import com.pocketful.repository.PaymentRepository;
 import com.pocketful.utils.PaymentBuilder;
+import com.pocketful.utils.PaymentFrequencyBuilder;
 import freemarker.template.Template;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -94,5 +96,19 @@ class PaymentServiceTest {
         assertEquals(2, models.size());
         assertThat(models).anySatisfy(model -> assertThat(account1).isEqualTo(model.get("account")));
         assertThat(models).anySatisfy(model -> assertThat(account2).isEqualTo(model.get("account")));
+    }
+
+    @Test
+    @DisplayName("deve cadastrar N - 1 pagamentos")
+    void shouldGeneratePayments() {
+        int times = 50;
+
+        ArgumentCaptor<List<Payment>> captor = ArgumentCaptor.forClass(List.class);
+        PaymentFrequency paymentFrequency = PaymentFrequencyBuilder.buildPaymentFrequency(times);
+
+        paymentService.processPaymentGeneration(PaymentBuilder.buildPayment(paymentFrequency));
+
+        verify(paymentRepository, times(1)).saveAll(captor.capture());
+        assertEquals(times - 1, captor.getValue().size());
     }
 }

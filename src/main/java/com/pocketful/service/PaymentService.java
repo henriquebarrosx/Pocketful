@@ -91,7 +91,6 @@ public class PaymentService {
         }
 
         paymentRepository.saveAll(payments);
-        payments.clear();
     }
 
     private Boolean isValidAmount(float amount) {
