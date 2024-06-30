@@ -44,6 +44,5 @@ public class PaymentController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(new PaymentIdDTO(payment.getId()));
-
     }
 }

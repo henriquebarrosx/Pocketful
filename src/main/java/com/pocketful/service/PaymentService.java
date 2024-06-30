@@ -3,7 +3,7 @@ package com.pocketful.service;
 import com.pocketful.entity.Currency;
 import com.pocketful.entity.*;
 import com.pocketful.exception.BadRequestException;
-import com.pocketful.exception.InternalServerErrorException;
+import com.pocketful.producer.PaymentQueueProducer;
 import com.pocketful.repository.PaymentRepository;
 import com.pocketful.web.dto.payment.NewPaymentDTO;
 import com.pocketful.web.view.payment.PaymentModel;
@@ -23,6 +23,7 @@ public class PaymentService {
     private final EmailService emailService;
     private final AccountService accountService;
     private final PaymentRepository paymentRepository;
+    private final PaymentQueueProducer paymentQueueProducer;
     private final PaymentCategoryService paymentCategoryService;
     private final PaymentFrequencyService paymentFrequencyService;
 
@@ -32,8 +33,8 @@ public class PaymentService {
         LocalDate MAX_DATE = LocalDate.of(9999, 1, 1);
 
         return paymentRepository.findAllByDeadlineAtBetween(
-            Objects.isNull(startAt) ? MIN_DATE : startAt,
-            Objects.isNull(endAt) ? MAX_DATE : endAt
+                Objects.isNull(startAt) ? MIN_DATE : startAt,
+                Objects.isNull(endAt) ? MAX_DATE : endAt
         );
     }
 
@@ -51,30 +52,46 @@ public class PaymentService {
         PaymentFrequency paymentFrequency = paymentFrequencyService
                 .create(newPaymentDTO.getIsIndeterminate(), newPaymentDTO.getFrequencyTimes());
 
-        List<Payment> payments = new ArrayList<>();
+        Payment payment = Payment.builder()
+                .account(account)
+                .paymentCategory(paymentCategory)
+                .paymentFrequency(paymentFrequency)
+                .amount(newPaymentDTO.getAmount())
+                .description(newPaymentDTO.getDescription())
+                .isExpense(newPaymentDTO.getIsExpense())
+                .payed(newPaymentDTO.getPayed())
+                .deadlineAt(newPaymentDTO.getDeadlineAt())
+                .build();
 
-        for (int index = 0; index < paymentFrequency.getTimes(); index++) {
-            LocalDate deadline = LocalDate.from(newPaymentDTO.getDeadlineAt())
+        paymentRepository.save(payment);
+        paymentQueueProducer.processPaymentGeneration(payment);
+        return payment;
+    }
+
+    public void processPaymentGeneration(Payment payment) {
+        int batchSize = payment.getPaymentFrequency().getTimes();
+        List<Payment> payments = new ArrayList<>(batchSize - 1);
+
+        for (int index = 1; index < batchSize; index++) {
+            LocalDate deadline = LocalDate.from(payment.getDeadlineAt())
                     .plusMonths(index);
 
             payments.add(
                     Payment.builder()
-                            .amount(newPaymentDTO.getAmount())
-                            .description(newPaymentDTO.getDescription())
+                            .amount(payment.getAmount())
+                            .description(payment.getDescription())
                             .deadlineAt(deadline)
-                            .payed(newPaymentDTO.getPayed())
-                            .isExpense(newPaymentDTO.getIsExpense())
-                            .paymentFrequency(paymentFrequency)
-                            .account(account)
-                            .paymentCategory(paymentCategory)
+                            .payed(payment.getPayed())
+                            .isExpense(payment.getIsExpense())
+                            .paymentFrequency(payment.getPaymentFrequency())
+                            .account(payment.getAccount())
+                            .paymentCategory(payment.getPaymentCategory())
                             .build()
             );
         }
 
         paymentRepository.saveAll(payments);
-
-        return payments.stream().findFirst()
-                .orElseThrow(() -> new InternalServerErrorException("Something wrong when getting registered payment"));
+        payments.clear();
     }
 
     private Boolean isValidAmount(float amount) {
