@@ -7,6 +7,7 @@ import com.pocketful.entity.Account;
 import com.pocketful.entity.Payment;
 import com.pocketful.entity.PaymentCategory;
 import com.pocketful.entity.PaymentFrequency;
+import com.pocketful.producer.PaymentQueueProducer;
 import com.pocketful.repository.AccountRepository;
 import com.pocketful.repository.PaymentCategoryRepository;
 import com.pocketful.repository.PaymentFrequencyRepository;
@@ -18,9 +19,11 @@ import com.pocketful.web.dto.payment.NewPaymentDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -30,6 +33,7 @@ import java.util.List;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -51,10 +55,16 @@ class PaymentControllerTest {
     @Autowired
     private AccountRepository accountRepository;
 
+    @MockBean
+    private PaymentQueueProducer paymentQueueProducer;
+
     @Autowired
     private MockMvc mockMvc;
 
     private ObjectMapper objectMapper;
+
+    PaymentControllerTest() {
+    }
 
     @BeforeEach
     public void setup() {
@@ -63,8 +73,8 @@ class PaymentControllerTest {
                 .build();
 
         paymentRepository.deleteAll();
-        paymentCategoryRepository.deleteAll();
         paymentFrequencyRepository.deleteAll();
+        paymentCategoryRepository.deleteAll();
         accountRepository.deleteAll();
     }
 
@@ -116,6 +126,8 @@ class PaymentControllerTest {
         PaymentCategory category = paymentCategoryRepository.save(PaymentCategoryBuilder.buildPaymentCategory());
         NewPaymentDTO request = PaymentBuilder.buildNewPaymentRequest(account, category, amount);
 
+        doNothing().when(paymentQueueProducer).processPaymentGeneration(any());
+
         mockMvc.perform(post("/v1/payments")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -126,12 +138,15 @@ class PaymentControllerTest {
     }
 
     @Test
-    @DisplayName("Deve retornar 201 e gerar N outros pagamentos baseado na frequência do pagamento")
+    @DisplayName("Deve retornar 201 e o id do pagamento, bem como encaminhar o mesmo para uma fila contendo 5 frequências")
     public void t5() throws Exception {
         int frequencyTimes = 5;
         Account account = accountRepository.save(AccountBuilder.buildAccount());
         PaymentCategory category = paymentCategoryRepository.save(PaymentCategoryBuilder.buildPaymentCategory());
         NewPaymentDTO request = PaymentBuilder.buildNewPaymentRequest(account, category, frequencyTimes);
+
+        ArgumentCaptor<Payment> paymentArgumentCaptor = ArgumentCaptor.forClass(Payment.class);
+        doNothing().when(paymentQueueProducer).processPaymentGeneration(paymentArgumentCaptor.capture());
 
         mockMvc.perform(post("/v1/payments")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -139,7 +154,11 @@ class PaymentControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").exists());
 
-        assertEquals(5, paymentRepository.count());
+        assertEquals(1, paymentRepository.count());
+        verify(paymentQueueProducer, times(1)).processPaymentGeneration(any());
+        assertEquals(account.getId(), paymentArgumentCaptor.getValue().getAccount().getId());
+        assertEquals(category.getId(), paymentArgumentCaptor.getValue().getPaymentCategory().getId());
+        assertEquals(frequencyTimes, paymentArgumentCaptor.getValue().getPaymentFrequency().getTimes());
     }
 
     @Test
@@ -161,12 +180,15 @@ class PaymentControllerTest {
     }
 
     @Test
-    @DisplayName("Deve retornar 201 e cadastrar 600 pagamentos quando frequência for indeterminada")
+    @DisplayName("Deve retornar 201 e o id do pagamento, bem como encaminhar o mesmo para uma fila contendo 600 frequências quando indeterminada")
     public void t7() throws Exception {
         boolean isIndeterminate = true;
         Account account = accountRepository.save(AccountBuilder.buildAccount());
         PaymentCategory category = paymentCategoryRepository.save(PaymentCategoryBuilder.buildPaymentCategory());
         NewPaymentDTO request = PaymentBuilder.buildNewPaymentRequest(account, category, isIndeterminate);
+
+        ArgumentCaptor<Payment> paymentArgumentCaptor = ArgumentCaptor.forClass(Payment.class);
+        doNothing().when(paymentQueueProducer).processPaymentGeneration(paymentArgumentCaptor.capture());
 
         mockMvc.perform(post("/v1/payments")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -174,8 +196,11 @@ class PaymentControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").exists());
 
-        assertEquals(600, paymentRepository.count());
         assertEquals(1, paymentFrequencyRepository.count());
+        verify(paymentQueueProducer, times(1)).processPaymentGeneration(any());
+        assertEquals(account.getId(), paymentArgumentCaptor.getValue().getAccount().getId());
+        assertEquals(category.getId(), paymentArgumentCaptor.getValue().getPaymentCategory().getId());
+        assertEquals(600, paymentArgumentCaptor.getValue().getPaymentFrequency().getTimes());
     }
 
     @Test
