@@ -7,6 +7,7 @@ import com.pocketful.entity.Account;
 import com.pocketful.entity.Payment;
 import com.pocketful.entity.PaymentCategory;
 import com.pocketful.entity.PaymentFrequency;
+import com.pocketful.enums.PaymentDeletionOption;
 import com.pocketful.producer.PaymentQueueProducer;
 import com.pocketful.repository.AccountRepository;
 import com.pocketful.repository.PaymentCategoryRepository;
@@ -15,7 +16,9 @@ import com.pocketful.repository.PaymentRepository;
 import com.pocketful.utils.AccountBuilder;
 import com.pocketful.utils.PaymentBuilder;
 import com.pocketful.utils.PaymentCategoryBuilder;
+import com.pocketful.utils.PaymentFrequencyBuilder;
 import com.pocketful.web.dto.payment.NewPaymentDTO;
+import com.pocketful.web.dto.payment.PaymentDeleteDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -34,8 +37,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -234,20 +236,88 @@ class PaymentControllerTest {
         PaymentFrequency paymentFrequency = paymentFrequencyRepository.save(PaymentBuilder.buildPayment().getPaymentFrequency());
 
         paymentRepository.saveAll(
-          List.of(
-              PaymentBuilder.buildPayment(account, category, paymentFrequency, "2024-05-01"),
-              PaymentBuilder.buildPayment(account, category, paymentFrequency, "2024-06-05"),
-              PaymentBuilder.buildPayment(account, category, paymentFrequency, "2024-06-10"),
-              PaymentBuilder.buildPayment(account, category, paymentFrequency, "2024-07-15")
-          )
+                List.of(
+                        PaymentBuilder.buildPayment(account, category, paymentFrequency, "2024-05-01"),
+                        PaymentBuilder.buildPayment(account, category, paymentFrequency, "2024-06-05"),
+                        PaymentBuilder.buildPayment(account, category, paymentFrequency, "2024-06-10"),
+                        PaymentBuilder.buildPayment(account, category, paymentFrequency, "2024-07-15")
+                )
         );
 
         String startDate = "2024-06-01";
         String endDate = "2024-06-30";
 
         mockMvc.perform(get(String.format("/v1/payments?startAt=%s&endAt=%s", startDate, endDate))
-                .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$", hasSize(2)));
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)));
+    }
+
+    @Test
+    @DisplayName("Deve retornar 404 ao tentar excluir pagamento inexistente")
+    public void t10() throws Exception {
+        mockMvc.perform(delete(String.format("/v1/payments/%s", 1))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new PaymentDeleteDTO(PaymentDeletionOption.THIS_PAYMENT))))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message", is("Payment not found")));
+    }
+
+    @Test
+    @DisplayName("Deve retornar 204 ao excluir apenas o pagamento com o id informado")
+    public void t11() throws Exception {
+        Account account = accountRepository.save(PaymentBuilder.buildPayment().getAccount());
+        PaymentCategory category = paymentCategoryRepository.save(PaymentBuilder.buildPayment().getPaymentCategory());
+        PaymentFrequency paymentFrequency = paymentFrequencyRepository.save(PaymentFrequencyBuilder.buildPaymentFrequency(1));
+        Payment payment = paymentRepository.save(PaymentBuilder.buildPayment(account, category, paymentFrequency));
+
+        mockMvc.perform(delete(String.format("/v1/payments/%s", payment.getId()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new PaymentDeleteDTO(PaymentDeletionOption.THIS_PAYMENT))))
+                .andExpect(status().isNoContent());
+
+        assertEquals(0, paymentRepository.count());
+    }
+
+    @Test
+    @DisplayName("Deve retornar 204 e excluir apenas pagamentos com data de vencimento igual e superior ao do pagamento informado")
+    public void t12() throws Exception {
+        Account account = accountRepository.save(PaymentBuilder.buildPayment().getAccount());
+        PaymentCategory category = paymentCategoryRepository.save(PaymentBuilder.buildPayment().getPaymentCategory());
+        PaymentFrequency paymentFrequency = paymentFrequencyRepository.save(PaymentFrequencyBuilder.buildPaymentFrequency(4));
+
+        paymentRepository.save(PaymentBuilder.buildPayment(account, category, paymentFrequency, "2024-05-01"));
+        paymentRepository.save(PaymentBuilder.buildPayment(account, category, paymentFrequency, "2024-05-05"));
+        Payment p3 = paymentRepository.save(PaymentBuilder.buildPayment(account, category, paymentFrequency, "2024-06-10"));
+        paymentRepository.save(PaymentBuilder.buildPayment(account, category, paymentFrequency, "2024-06-15"));
+        paymentRepository.save(PaymentBuilder.buildPayment(account, category, paymentFrequency, "2024-07-20"));
+
+        mockMvc.perform(delete(String.format("/v1/payments/%s", p3.getId()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new PaymentDeleteDTO(PaymentDeletionOption.THIS_AND_FUTURE_PAYMENTS))))
+                .andExpect(status().isNoContent());
+
+        assertEquals(2, paymentRepository.count());
+    }
+
+    @Test
+    @DisplayName("Deve retornar 204 e excluir todos os pagamentos baseado na frequencia do pagamento informado")
+    public void t13() throws Exception {
+        Account account = accountRepository.save(PaymentBuilder.buildPayment().getAccount());
+        PaymentCategory category = paymentCategoryRepository.save(PaymentBuilder.buildPayment().getPaymentCategory());
+        PaymentFrequency paymentFrequency = paymentFrequencyRepository.save(PaymentFrequencyBuilder.buildPaymentFrequency(4));
+
+        paymentRepository.save(PaymentBuilder.buildPayment(account, category, paymentFrequency, "2024-05-01"));
+        paymentRepository.save(PaymentBuilder.buildPayment(account, category, paymentFrequency, "2024-05-05"));
+        Payment p3 = paymentRepository.save(PaymentBuilder.buildPayment(account, category, paymentFrequency, "2024-06-10"));
+        paymentRepository.save(PaymentBuilder.buildPayment(account, category, paymentFrequency, "2024-06-15"));
+        paymentRepository.save(PaymentBuilder.buildPayment(account, category, paymentFrequency, "2024-07-20"));
+
+        mockMvc.perform(delete(String.format("/v1/payments/%s", p3.getId()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new PaymentDeleteDTO(PaymentDeletionOption.ALL_PAYMENTS))))
+                .andExpect(status().isNoContent());
+
+        assertEquals(0, paymentRepository.count());
     }
 }

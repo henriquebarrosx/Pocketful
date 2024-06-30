@@ -2,7 +2,9 @@ package com.pocketful.service;
 
 import com.pocketful.entity.Currency;
 import com.pocketful.entity.*;
+import com.pocketful.enums.PaymentDeletionOption;
 import com.pocketful.exception.BadRequestException;
+import com.pocketful.exception.NotFoundException;
 import com.pocketful.producer.PaymentQueueProducer;
 import com.pocketful.repository.PaymentRepository;
 import com.pocketful.web.dto.payment.NewPaymentDTO;
@@ -36,6 +38,11 @@ public class PaymentService {
                 Objects.isNull(startAt) ? MIN_DATE : startAt,
                 Objects.isNull(endAt) ? MAX_DATE : endAt
         );
+    }
+
+    public Payment findById(Long id) {
+        return paymentRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Payment not found"));
     }
 
     @Transactional
@@ -131,5 +138,22 @@ public class PaymentService {
                 .amount(currency.getValue())
                 .isOverdue(payment.getDeadlineAt().isBefore(date))
                 .build();
+    }
+
+    @Transactional
+    public void delete(Long id, PaymentDeletionOption type) {
+        Payment payment = findById(id);
+
+        if (type.equals(PaymentDeletionOption.THIS_PAYMENT)) {
+            paymentRepository.delete(payment);
+        }
+
+        else if (type.equals(PaymentDeletionOption.THIS_AND_FUTURE_PAYMENTS)) {
+            paymentRepository.deleteAllByDeadlineAtGreaterThanEqual(payment.getDeadlineAt());
+        }
+
+        else if (type.equals(PaymentDeletionOption.ALL_PAYMENTS)) {
+            paymentRepository.deleteAllByPaymentFrequency(payment.getPaymentFrequency());
+        }
     }
 }

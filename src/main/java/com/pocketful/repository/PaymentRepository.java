@@ -1,6 +1,7 @@
 package com.pocketful.repository;
 
 import com.pocketful.entity.Payment;
+import com.pocketful.entity.PaymentFrequency;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.query.Param;
 
@@ -16,4 +17,8 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
         @Param("startAt") LocalDate startAt,
         @Param("endAt") LocalDate endAt
     );
+
+    void deleteAllByDeadlineAtGreaterThanEqual(LocalDate date);
+
+    void deleteAllByPaymentFrequency(PaymentFrequency paymentFrequency);
 }

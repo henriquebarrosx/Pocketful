@@ -4,6 +4,7 @@ import com.pocketful.entity.Payment;
 import com.pocketful.service.PaymentService;
 import com.pocketful.web.dto.payment.NewPaymentDTO;
 import com.pocketful.web.dto.payment.PaymentDTO;
+import com.pocketful.web.dto.payment.PaymentDeleteDTO;
 import com.pocketful.web.dto.payment.PaymentIdDTO;
 import com.pocketful.web.mapper.PaymentDTOMapper;
 import lombok.AllArgsConstructor;
@@ -44,5 +45,14 @@ public class PaymentController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(new PaymentIdDTO(payment.getId()));
+    }
+
+    @DeleteMapping("{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id, @RequestBody PaymentDeleteDTO request) {
+        paymentService.delete(id, request.type());
+
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .build();
     }
 }
