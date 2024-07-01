@@ -1,18 +1,16 @@
 package com.pocketful.service;
 
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.stereotype.Service;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 
-import java.util.Map;
 import java.io.IOException;
-
-import freemarker.template.Template;
-import freemarker.template.Configuration;
-import freemarker.template.TemplateException;
 
 @Slf4j
 @Service
@@ -21,7 +19,7 @@ public class EmailService {
     private final JavaMailSender mailSender;
     private final Configuration configuration;
 
-    public void send(String to, String subject, Template template, Map<String, Object> model) {
+    public <T> void send(String to, String subject, Template template, T model) {
         try {
             log.info("Sending notification: {}", to);
 
@@ -45,7 +43,7 @@ public class EmailService {
         }
     }
 
-    private String getContent(Template template, Map<String, Object> model) throws IOException, TemplateException {
+    private <T> String getContent(Template template, T model) throws IOException, TemplateException {
         return FreeMarkerTemplateUtils.processTemplateIntoString(template, model);
     }
 }

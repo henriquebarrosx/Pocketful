@@ -2,10 +2,7 @@ package com.pocketful.controller;
 
 import com.pocketful.entity.Payment;
 import com.pocketful.service.PaymentService;
-import com.pocketful.web.dto.payment.NewPaymentDTO;
-import com.pocketful.web.dto.payment.PaymentDTO;
-import com.pocketful.web.dto.payment.PaymentDeleteDTO;
-import com.pocketful.web.dto.payment.PaymentIdDTO;
+import com.pocketful.web.dto.payment.*;
 import com.pocketful.web.mapper.PaymentDTOMapper;
 import lombok.AllArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -50,6 +47,15 @@ public class PaymentController {
     @DeleteMapping("{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id, @RequestBody PaymentDeleteDTO request) {
         paymentService.delete(id, request.type());
+
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .build();
+    }
+
+    @PutMapping("{id}")
+    public ResponseEntity<Void> update(@PathVariable Long id, @RequestBody PaymentEditionRequestDTO request) {
+        paymentService.update(id, request);
 
         return ResponseEntity
                 .status(HttpStatus.NO_CONTENT)

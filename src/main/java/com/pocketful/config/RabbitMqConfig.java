@@ -8,7 +8,8 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class RabbitMqConfig {
-    public static final String PAYMENT_PROCESS_QUEUE = "payment_generation_queue";
+    public static final String PAYMENTS_GENERATION_QUEUE = "payments_generation_queue";
+    public static final String PAYMENTS_EDITION_QUEUE = "payments_edition_queue";
 
     @Bean
     public Jackson2JsonMessageConverter producerJackson2MessageConverter() {
@@ -16,7 +17,12 @@ public class RabbitMqConfig {
     }
 
     @Bean
-    public Declarable paymentProcessQueue() {
-        return new Queue(PAYMENT_PROCESS_QUEUE);
+    public Declarable processPaymentsGeneration() {
+        return new Queue(PAYMENTS_GENERATION_QUEUE);
+    }
+
+    @Bean
+    public Declarable processPaymentsEdition() {
+        return new Queue(PAYMENTS_EDITION_QUEUE);
     }
 }

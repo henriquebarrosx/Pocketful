@@ -13,6 +13,10 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     List<Payment> findAllByDeadlineAtBetween(@Param("startAt") LocalDate startAt, @Param("endAt") LocalDate endAt);
 
+    List<Payment> findAllByDeadlineAtGreaterThanEqual(LocalDate date);
+
+    List<Payment> findAllByPaymentFrequency(PaymentFrequency paymentFrequency);
+
     boolean existsPaymentByPaymentFrequency(PaymentFrequency paymentFrequency);
 
     void deleteAllByDeadlineAtGreaterThanEqual(LocalDate date);

@@ -5,14 +5,14 @@ import lombok.AllArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
-import static com.pocketful.config.RabbitMqConfig.PAYMENT_PROCESS_QUEUE;
+import static com.pocketful.config.RabbitMqConfig.PAYMENTS_GENERATION_QUEUE;
 
 @AllArgsConstructor
 @Service
-public class PaymentQueueProducer {
+public class PaymentGenerationQueueProducer {
     private final RabbitTemplate rabbitTemplate;
 
     public void processPaymentGeneration(Payment payment) {
-        rabbitTemplate.convertAndSend(PAYMENT_PROCESS_QUEUE, payment);
+        rabbitTemplate.convertAndSend(PAYMENTS_GENERATION_QUEUE, payment);
     }
 }

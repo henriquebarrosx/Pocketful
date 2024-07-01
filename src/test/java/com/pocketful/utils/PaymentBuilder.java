@@ -52,6 +52,20 @@ public class PaymentBuilder {
                 .build();
     }
 
+    public static Payment buildPayment(Long id, LocalDate deadlineAt, Account account, int amount) {
+        return Payment.builder()
+                .id(id)
+                .amount(amount)
+                .description("Uber")
+                .payed(false)
+                .isExpense(true)
+                .deadlineAt(deadlineAt)
+                .account(account)
+                .paymentCategory(PaymentCategoryBuilder.buildPaymentCategory())
+                .paymentFrequency(PaymentFrequencyBuilder.buildPaymentFrequency())
+                .build();
+    }
+
     public static Payment buildPayment(Account account, PaymentCategory paymentCategory, PaymentFrequency paymentFrequency) {
         return Payment.builder()
                 .id(1L)
@@ -77,6 +91,19 @@ public class PaymentBuilder {
             .paymentCategory(paymentCategory)
             .paymentFrequency(paymentFrequency)
             .build();
+    }
+
+    public static Payment buildPayment(Account account, PaymentCategory paymentCategory, PaymentFrequency paymentFrequency, String deadlineAt, int amount) {
+        return Payment.builder()
+                .amount(amount)
+                .description("Uber")
+                .payed(false)
+                .isExpense(true)
+                .deadlineAt(LocalDate.parse(deadlineAt, DateTimeFormatter.ofPattern("yyyy-MM-dd")))
+                .account(account)
+                .paymentCategory(paymentCategory)
+                .paymentFrequency(paymentFrequency)
+                .build();
     }
 
     public static NewPaymentDTO buildNewPaymentRequest() {

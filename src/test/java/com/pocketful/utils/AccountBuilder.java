@@ -13,6 +13,14 @@ public class AccountBuilder {
                 .build();
     }
 
+    public static Account buildAccount(String name, String email, String phone) {
+        return Account.builder()
+                .name(name)
+                .email(email)
+                .phoneNumber(phone)
+                .build();
+    }
+
     public static NewAccountDTO buildNewAccountRequest() {
         return NewAccountDTO.builder()
                 .email("john.doe@mail.com")

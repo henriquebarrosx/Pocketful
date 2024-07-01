@@ -7,14 +7,14 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
-import static com.pocketful.config.RabbitMqConfig.PAYMENT_PROCESS_QUEUE;
+import static com.pocketful.config.RabbitMqConfig.PAYMENTS_GENERATION_QUEUE;
 
 @AllArgsConstructor
 @Component
-public class PaymentQueueConsumer {
+public class PaymentGenerationQueueConsumer {
     private final PaymentService paymentService;
 
-    @RabbitListener(queues = PAYMENT_PROCESS_QUEUE)
+    @RabbitListener(queues = PAYMENTS_GENERATION_QUEUE)
     public void receive(@Payload Payment payment) {
         paymentService.processPaymentGeneration(payment);
     }

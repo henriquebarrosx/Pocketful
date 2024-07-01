@@ -7,8 +7,9 @@ import com.pocketful.entity.Account;
 import com.pocketful.entity.Payment;
 import com.pocketful.entity.PaymentCategory;
 import com.pocketful.entity.PaymentFrequency;
-import com.pocketful.enums.PaymentDeletionOption;
-import com.pocketful.producer.PaymentQueueProducer;
+import com.pocketful.enums.PaymentSelectionOption;
+import com.pocketful.producer.PaymentEditionQueueProducer;
+import com.pocketful.producer.PaymentGenerationQueueProducer;
 import com.pocketful.repository.AccountRepository;
 import com.pocketful.repository.PaymentCategoryRepository;
 import com.pocketful.repository.PaymentFrequencyRepository;
@@ -19,6 +20,7 @@ import com.pocketful.utils.PaymentCategoryBuilder;
 import com.pocketful.utils.PaymentFrequencyBuilder;
 import com.pocketful.web.dto.payment.NewPaymentDTO;
 import com.pocketful.web.dto.payment.PaymentDeleteDTO;
+import com.pocketful.web.dto.payment.PaymentEditionRequestDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,6 +33,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -58,7 +61,10 @@ class PaymentControllerTest {
     private AccountRepository accountRepository;
 
     @MockBean
-    private PaymentQueueProducer paymentQueueProducer;
+    private PaymentGenerationQueueProducer paymentGenerationQueueProducer;
+
+    @MockBean
+    private PaymentEditionQueueProducer paymentEditionQueueProducer;
 
     @Autowired
     private MockMvc mockMvc;
@@ -117,7 +123,7 @@ class PaymentControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message", is("Amount should be greater than 0.")));
+                .andExpect(jsonPath("$.message", is("Amount should be greater or equals 0.")));
     }
 
     @Test
@@ -128,7 +134,7 @@ class PaymentControllerTest {
         PaymentCategory category = paymentCategoryRepository.save(PaymentCategoryBuilder.buildPaymentCategory());
         NewPaymentDTO request = PaymentBuilder.buildNewPaymentRequest(account, category, amount);
 
-        doNothing().when(paymentQueueProducer).processPaymentGeneration(any());
+        doNothing().when(paymentGenerationQueueProducer).processPaymentGeneration(any());
 
         mockMvc.perform(post("/v1/payments")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -148,7 +154,7 @@ class PaymentControllerTest {
         NewPaymentDTO request = PaymentBuilder.buildNewPaymentRequest(account, category, frequencyTimes);
 
         ArgumentCaptor<Payment> paymentArgumentCaptor = ArgumentCaptor.forClass(Payment.class);
-        doNothing().when(paymentQueueProducer).processPaymentGeneration(paymentArgumentCaptor.capture());
+        doNothing().when(paymentGenerationQueueProducer).processPaymentGeneration(paymentArgumentCaptor.capture());
 
         mockMvc.perform(post("/v1/payments")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -157,7 +163,7 @@ class PaymentControllerTest {
                 .andExpect(jsonPath("$.id").exists());
 
         assertEquals(1, paymentRepository.count());
-        verify(paymentQueueProducer, times(1)).processPaymentGeneration(any());
+        verify(paymentGenerationQueueProducer, times(1)).processPaymentGeneration(any());
         assertEquals(account.getId(), paymentArgumentCaptor.getValue().getAccount().getId());
         assertEquals(category.getId(), paymentArgumentCaptor.getValue().getPaymentCategory().getId());
         assertEquals(frequencyTimes, paymentArgumentCaptor.getValue().getPaymentFrequency().getTimes());
@@ -190,7 +196,7 @@ class PaymentControllerTest {
         NewPaymentDTO request = PaymentBuilder.buildNewPaymentRequest(account, category, isIndeterminate);
 
         ArgumentCaptor<Payment> paymentArgumentCaptor = ArgumentCaptor.forClass(Payment.class);
-        doNothing().when(paymentQueueProducer).processPaymentGeneration(paymentArgumentCaptor.capture());
+        doNothing().when(paymentGenerationQueueProducer).processPaymentGeneration(paymentArgumentCaptor.capture());
 
         mockMvc.perform(post("/v1/payments")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -199,7 +205,7 @@ class PaymentControllerTest {
                 .andExpect(jsonPath("$.id").exists());
 
         assertEquals(1, paymentFrequencyRepository.count());
-        verify(paymentQueueProducer, times(1)).processPaymentGeneration(any());
+        verify(paymentGenerationQueueProducer, times(1)).processPaymentGeneration(any());
         assertEquals(account.getId(), paymentArgumentCaptor.getValue().getAccount().getId());
         assertEquals(category.getId(), paymentArgumentCaptor.getValue().getPaymentCategory().getId());
         assertEquals(600, paymentArgumentCaptor.getValue().getPaymentFrequency().getTimes());
@@ -258,7 +264,7 @@ class PaymentControllerTest {
     public void t10() throws Exception {
         mockMvc.perform(delete(String.format("/v1/payments/%s", 1))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new PaymentDeleteDTO(PaymentDeletionOption.THIS_PAYMENT))))
+                        .content(objectMapper.writeValueAsString(new PaymentDeleteDTO(PaymentSelectionOption.THIS_PAYMENT))))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message", is("Payment not found")));
     }
@@ -273,7 +279,7 @@ class PaymentControllerTest {
 
         mockMvc.perform(delete(String.format("/v1/payments/%s", payment.getId()))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new PaymentDeleteDTO(PaymentDeletionOption.THIS_PAYMENT))))
+                        .content(objectMapper.writeValueAsString(new PaymentDeleteDTO(PaymentSelectionOption.THIS_PAYMENT))))
                 .andExpect(status().isNoContent());
 
         assertEquals(0, paymentRepository.count());
@@ -295,7 +301,7 @@ class PaymentControllerTest {
 
         mockMvc.perform(delete(String.format("/v1/payments/%s", p3.getId()))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new PaymentDeleteDTO(PaymentDeletionOption.THIS_AND_FUTURE_PAYMENTS))))
+                        .content(objectMapper.writeValueAsString(new PaymentDeleteDTO(PaymentSelectionOption.THIS_AND_FUTURE_PAYMENTS))))
                 .andExpect(status().isNoContent());
 
         assertEquals(2, paymentRepository.count());
@@ -317,7 +323,7 @@ class PaymentControllerTest {
 
         mockMvc.perform(delete(String.format("/v1/payments/%s", p3.getId()))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new PaymentDeleteDTO(PaymentDeletionOption.ALL_PAYMENTS))))
+                        .content(objectMapper.writeValueAsString(new PaymentDeleteDTO(PaymentSelectionOption.ALL_PAYMENTS))))
                 .andExpect(status().isNoContent());
 
         assertEquals(0, paymentRepository.count());
@@ -340,5 +346,91 @@ class PaymentControllerTest {
 
         assertEquals(1, paymentRepository.count());
         assertEquals(1, paymentFrequencyRepository.count());
+    }
+
+    @Test
+    @DisplayName("Deve retornar 404 ao tentar editar pagamento inexistente")
+    public void t15() throws Exception {
+        mockMvc.perform(put(String.format("/v1/payments/%s", 1))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new PaymentEditionRequestDTO())))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message", is("Payment not found")));
+    }
+
+    @Test
+    @DisplayName("Deve retornar 404 ao tentar editar pagamento com uma categoria inexistente")
+    public void t16() throws Exception {
+        Account account = accountRepository.save(PaymentBuilder.buildPayment().getAccount());
+        PaymentCategory category = paymentCategoryRepository.save(PaymentBuilder.buildPayment().getPaymentCategory());
+        PaymentFrequency paymentFrequency = paymentFrequencyRepository.save(PaymentFrequencyBuilder.buildPaymentFrequency(4));
+        Payment payment = paymentRepository.save(PaymentBuilder.buildPayment(account, category, paymentFrequency, "2024-05-01"));
+
+        PaymentEditionRequestDTO request = PaymentEditionRequestDTO.builder()
+                .paymentCategoryId(1L)
+                .build();
+
+        mockMvc.perform(put(String.format("/v1/payments/%s", payment.getId()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message", is("Payment Category not found")));
+    }
+
+    @Test
+    @DisplayName("Deve retornar 400 ao tentar editar pagamento com valor inválido")
+    public void t17() throws Exception {
+        Account account = accountRepository.save(PaymentBuilder.buildPayment().getAccount());
+        PaymentCategory category = paymentCategoryRepository.save(PaymentBuilder.buildPayment().getPaymentCategory());
+        PaymentFrequency paymentFrequency = paymentFrequencyRepository.save(PaymentFrequencyBuilder.buildPaymentFrequency(4));
+        Payment payment = paymentRepository.save(PaymentBuilder.buildPayment(account, category, paymentFrequency, "2024-05-01"));
+
+        PaymentEditionRequestDTO request = PaymentEditionRequestDTO.builder()
+                .paymentCategoryId(category.getId())
+                .amount(-10)
+                .build();
+
+        mockMvc.perform(put(String.format("/v1/payments/%s", payment.getId()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message", is("Amount should be greater or equals 0.")));
+    }
+
+    @Test
+    @DisplayName("Deve retornar 204 ao editar pagamento com parâmetros válidos")
+    public void t18() throws Exception {
+        Account account = accountRepository.save(PaymentBuilder.buildPayment().getAccount());
+        PaymentCategory category = paymentCategoryRepository.save(PaymentBuilder.buildPayment().getPaymentCategory());
+        PaymentFrequency paymentFrequency = paymentFrequencyRepository.save(PaymentFrequencyBuilder.buildPaymentFrequency(4));
+        Payment payment = paymentRepository.save(PaymentBuilder.buildPayment(account, category, paymentFrequency, "2024-05-01"));
+
+        ArgumentCaptor<Payment> paymentArgumentCaptor = ArgumentCaptor.forClass(Payment.class);
+        ArgumentCaptor<PaymentSelectionOption> selectionTypeCaptor = ArgumentCaptor.forClass(PaymentSelectionOption.class);
+        doNothing().when(paymentEditionQueueProducer).processPaymentUpdate(paymentArgumentCaptor.capture(), selectionTypeCaptor.capture());
+
+        PaymentEditionRequestDTO request = PaymentEditionRequestDTO.builder()
+                .paymentCategoryId(category.getId())
+                .amount(10)
+                .type(PaymentSelectionOption.THIS_PAYMENT)
+                .deadlineAt(LocalDate.parse("2024-05-30"))
+                .isExpense(false)
+                .payed(false)
+                .description("Lorem Ipsum")
+                .build();
+
+        mockMvc.perform(put(String.format("/v1/payments/%s", payment.getId()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNoContent());
+
+        verify(paymentEditionQueueProducer, times(1)).processPaymentUpdate(any(Payment.class), eq(PaymentSelectionOption.THIS_PAYMENT));
+        assertEquals(account.getId(), paymentArgumentCaptor.getValue().getAccount().getId());
+        assertEquals(category.getId(), paymentArgumentCaptor.getValue().getPaymentCategory().getId());
+        assertEquals(LocalDate.parse("2024-05-30"), paymentArgumentCaptor.getValue().getDeadlineAt());
+        assertEquals(false, paymentArgumentCaptor.getValue().getIsExpense());
+        assertEquals(false, paymentArgumentCaptor.getValue().getPayed());
+        assertEquals("Lorem Ipsum", paymentArgumentCaptor.getValue().getDescription());
+        assertEquals(selectionTypeCaptor.getValue(), PaymentSelectionOption.THIS_PAYMENT);
     }
 }
