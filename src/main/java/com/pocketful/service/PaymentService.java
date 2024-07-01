@@ -155,5 +155,8 @@ public class PaymentService {
         else if (type.equals(PaymentDeletionOption.ALL_PAYMENTS)) {
             paymentRepository.deleteAllByPaymentFrequency(payment.getPaymentFrequency());
         }
+
+        boolean hasPayments = paymentRepository.existsPaymentByPaymentFrequency(payment.getPaymentFrequency());
+        if (!hasPayments) paymentFrequencyService.deleteById(payment.getPaymentFrequency().getId());
     }
 }

@@ -3,6 +3,7 @@ package com.pocketful.service;
 import com.pocketful.entity.PaymentFrequency;
 import com.pocketful.exception.BadRequestException;
 import com.pocketful.repository.PaymentFrequencyRepository;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -32,5 +33,10 @@ public class PaymentFrequencyService {
                         .times(times)
                         .build()
         );
+    }
+
+    @Transactional
+    public void deleteById(Long id) {
+        paymentFrequencyRepository.deleteById(id);
     }
 }

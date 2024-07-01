@@ -277,6 +277,7 @@ class PaymentControllerTest {
                 .andExpect(status().isNoContent());
 
         assertEquals(0, paymentRepository.count());
+        assertEquals(0, paymentFrequencyRepository.count());
     }
 
     @Test
@@ -298,6 +299,7 @@ class PaymentControllerTest {
                 .andExpect(status().isNoContent());
 
         assertEquals(2, paymentRepository.count());
+        assertEquals(1, paymentFrequencyRepository.count());
     }
 
     @Test
@@ -319,5 +321,24 @@ class PaymentControllerTest {
                 .andExpect(status().isNoContent());
 
         assertEquals(0, paymentRepository.count());
+        assertEquals(0, paymentFrequencyRepository.count());
+    }
+
+    @Test
+    @DisplayName("Deve retornar 400 ao tentar excluir um pagamento com tipo inexistente")
+    public void t14() throws Exception {
+        Account account = accountRepository.save(PaymentBuilder.buildPayment().getAccount());
+        PaymentCategory category = paymentCategoryRepository.save(PaymentBuilder.buildPayment().getPaymentCategory());
+        PaymentFrequency paymentFrequency = paymentFrequencyRepository.save(PaymentFrequencyBuilder.buildPaymentFrequency(4));
+
+        Payment payment = paymentRepository.save(PaymentBuilder.buildPayment(account, category, paymentFrequency, "2024-05-01"));
+
+        mockMvc.perform(delete(String.format("/v1/payments/%s", payment.getId()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"type\": \"LOREM_IPSUM\"}"))
+                .andExpect(status().isBadRequest());
+
+        assertEquals(1, paymentRepository.count());
+        assertEquals(1, paymentFrequencyRepository.count());
     }
 }
