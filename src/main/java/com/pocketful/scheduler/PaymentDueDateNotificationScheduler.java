@@ -1,4 +1,4 @@
-package com.pocketful.jobs;
+package com.pocketful.scheduler;
 
 import com.pocketful.service.PaymentService;
 import lombok.AllArgsConstructor;
@@ -13,7 +13,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @EnableScheduling
 @Configuration
-public class PaymentDueDateNotificationJob {
+public class PaymentDueDateNotificationScheduler {
     private final PaymentService paymentService;
 
     @Scheduled(cron = "0 0 8 * * *")
