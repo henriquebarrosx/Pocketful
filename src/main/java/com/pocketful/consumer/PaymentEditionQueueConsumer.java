@@ -8,7 +8,6 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
-import static com.pocketful.config.RabbitMqConfig.PAYMENTS_EDITION_QUEUE;
 
 @Slf4j
 @AllArgsConstructor
@@ -16,7 +15,7 @@ import static com.pocketful.config.RabbitMqConfig.PAYMENTS_EDITION_QUEUE;
 public class PaymentEditionQueueConsumer {
     private final PaymentService paymentService;
 
-    @RabbitListener(queues = PAYMENTS_EDITION_QUEUE)
+    @RabbitListener(queues = {"${queue.payments_edition_queue}"})
     public void receive(@Payload PaymentEditionQueuePayload payload) {
         log.info("PaymentEditionQueueConsumer.receive start payload: {}", payload);
         paymentService.processPaymentEdition(payload.getPayment(), payload.getType());

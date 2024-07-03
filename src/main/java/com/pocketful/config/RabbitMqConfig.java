@@ -3,13 +3,17 @@ package com.pocketful.config;
 import org.springframework.amqp.core.Declarable;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class RabbitMqConfig {
-    public static final String PAYMENTS_GENERATION_QUEUE = "payments_generation_queue";
-    public static final String PAYMENTS_EDITION_QUEUE = "payments_edition_queue";
+    @Value("${queue.payments_generation_queue}")
+    private String PAYMENTS_GENERATION_QUEUE;
+
+    @Value("${queue.payments_edition_queue}")
+    private String PAYMENTS_EDITION_QUEUE;
 
     @Bean
     public Jackson2JsonMessageConverter producerJackson2MessageConverter() {
