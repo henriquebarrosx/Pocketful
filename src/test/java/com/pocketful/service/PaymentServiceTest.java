@@ -80,8 +80,8 @@ class PaymentServiceTest {
                 )
         );
 
-        when(emailService.getTemplate("email.ftl")).thenReturn(mock(Template.class));
-        doNothing().when(emailService).send(anyString(), anyString(), any(), anyMap());
+        when(emailService.getTemplate("lembrete-vencimento-html.ftl")).thenReturn(mock(Template.class));
+        doNothing().when(emailService).send(anyString(), anyString(), any(), any(), anyMap());
 
         ArgumentCaptor<String> receiverCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> subjectCaptor = ArgumentCaptor.forClass(String.class);
@@ -91,7 +91,7 @@ class PaymentServiceTest {
         paymentService.notifyPendingPaymentsByDate(date);
 
         verify(emailService, times(2))
-                .send(receiverCaptor.capture(), subjectCaptor.capture(), templateCaptor.capture(), modelCaptor.capture());
+                .send(receiverCaptor.capture(), subjectCaptor.capture(), templateCaptor.capture(), templateCaptor.capture(), modelCaptor.capture());
 
         List<String> receivers = receiverCaptor.getAllValues();
         List<String> subjects = subjectCaptor.getAllValues();

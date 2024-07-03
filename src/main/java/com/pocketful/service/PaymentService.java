@@ -157,7 +157,8 @@ public class PaymentService {
         paymentsByAccounts.forEach((account, paymentList) -> {
             String to = account.getEmail();
             String subject = "Lembrete de Vencimento";
-            Template template = emailService.getTemplate("email.ftl");
+            Template htmlTemplate = emailService.getTemplate("lembrete-vencimento-html.ftl");
+            Template textTemplate = emailService.getTemplate("lembrete-vencimento-text.ftl");
 
             List<PaymentModel> paymentsModel = paymentList.stream()
                     .map(payment -> convertPaymentToModel(payment, date))
@@ -167,7 +168,7 @@ public class PaymentService {
             model.put("account", account);
             model.put("payments", paymentsModel);
 
-            emailService.send(to, subject, template, model);
+            emailService.send(to, subject, textTemplate, htmlTemplate, model);
         });
     }
 
