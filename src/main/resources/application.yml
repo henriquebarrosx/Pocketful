@@ -39,3 +39,10 @@ spring:
 
   profiles:
     default: prod
+
+queue:
+  payments_generation_queue: ${PAYMENTS_GENERATION_QUEUE}
+  payments_edition_queue: ${PAYMENTS_EDITION_QUEUE}
+
+scheduler:
+  pending_payment_notification: ${PENDING_PAYMENT_NOTIFICATION_TIME}
