@@ -78,6 +78,7 @@ public class PaymentService {
         return payment;
     }
 
+    //    TODO: Adicionar validação para permitir que apenas a pessoa que criou possa atualizar
     @Transactional
     public void update(Long id, PaymentEditionRequestDTO paymentParams) {
         Payment payment = findById(id);
@@ -200,6 +201,7 @@ public class PaymentService {
         return payments;
     }
 
+    //    TODO: Adicionar validação para permitir que apenas a pessoa que criou possa deletar
     @Transactional
     public void delete(Long id, PaymentSelectionOption type) {
         Payment payment = findById(id);
