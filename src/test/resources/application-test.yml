@@ -38,3 +38,13 @@ spring:
           starttls:
             enable: true
             required: true
+
+security:
+  token: JWT_SECRET
+
+queue:
+  payments_generation_queue: PAYMENTS_GENERATION_QUEUE
+  payments_edition_queue: PAYMENTS_EDITION_QUEUE
+
+scheduler:
+  pending_payment_notification: 0 0 8 * * *

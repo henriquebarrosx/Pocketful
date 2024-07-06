@@ -10,5 +10,6 @@ import lombok.*;
 public class NewAccountDTO {
     private String name;
     private String email;
+    private String password;
     private String phoneNumber;
 }

@@ -1,21 +1,17 @@
 package com.pocketful.web.dto.account;
 
+import com.pocketful.entity.AccountRole;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 
-import java.time.LocalDateTime;
-
-@Getter
-@Setter
 @Builder
+@Getter
 @AllArgsConstructor
-public class AccountDTO {
+public class AuthenticatedAccountDTO {
     private final Long id;
     private final String name;
     private final String email;
-    private final String phoneNumber;
-    private final LocalDateTime createdAt;
-    private final LocalDateTime updatedAt;
+    private final String token;
+    private final AccountRole role;
 }
