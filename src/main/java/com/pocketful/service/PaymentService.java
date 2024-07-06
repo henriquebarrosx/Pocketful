@@ -14,13 +14,16 @@ import com.pocketful.web.view.payment.PaymentModel;
 import freemarker.template.Template;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @AllArgsConstructor
 @Service
 public class PaymentService {
@@ -37,7 +40,7 @@ public class PaymentService {
         LocalDate MIN_DATE = LocalDate.of(1970, 1, 1);
         LocalDate MAX_DATE = LocalDate.of(9999, 1, 1);
 
-        return paymentRepository.findAllByDeadlineAtBetween(
+        return paymentRepository.findAllByDeadlineAtBetweenOrderByCreatedAtAsc(
                 Objects.isNull(startAt) ? MIN_DATE : startAt,
                 Objects.isNull(endAt) ? MAX_DATE : endAt
         );
@@ -50,6 +53,8 @@ public class PaymentService {
 
     @Transactional
     public Payment create(NewPaymentDTO newPaymentDTO) {
+        log.info("Creating payment start: {}", newPaymentDTO);
+
         Account account = accountService.findById(newPaymentDTO.getAccountId());
 
         PaymentCategory paymentCategory = paymentCategoryService
@@ -75,6 +80,8 @@ public class PaymentService {
 
         paymentRepository.save(payment);
         paymentGenerationQueueProducer.processPaymentGeneration(payment);
+        log.info("Creating payment end: {}", payment);
+
         return payment;
     }
 
@@ -82,6 +89,8 @@ public class PaymentService {
     @Transactional
     public void update(Long id, PaymentEditionRequestDTO paymentParams) {
         Payment payment = findById(id);
+
+        log.info("Updating payment start: {}", payment);
 
         PaymentCategory paymentCategory = paymentCategoryService
                 .findById(paymentParams.getPaymentCategoryId());
@@ -96,9 +105,12 @@ public class PaymentService {
         payment.setPayed(paymentParams.getPayed());
         payment.setIsExpense(paymentParams.getIsExpense());
         payment.setDeadlineAt(paymentParams.getDeadlineAt());
+        payment.setUpdatedAt(LocalDateTime.now());
 
         paymentRepository.save(payment);
         paymentEditionQueueProducer.processPaymentUpdate(payment, paymentParams.getType());
+
+        log.info("Updating payment end {}", payment);
     }
 
     public void processPaymentGeneration(Payment payment) {
@@ -138,6 +150,7 @@ public class PaymentService {
                     data.setPayed(payment.getPayed());
                     data.setIsExpense(payment.getIsExpense());
                     data.setDeadlineAt(deadline);
+                    data.setUpdatedAt(LocalDateTime.now());
                     return data;
                 }).toList();
 
