@@ -1,6 +1,6 @@
 CREATE SEQUENCE IF NOT EXISTS payment_frequencies_seq START WITH 1 INCREMENT BY 50;
 
-CREATE TABLE payment_frequencies
+CREATE TABLE IF NOT EXISTS payment_frequencies
 (
     id         BIGINT       NOT NULL,
     times      INTEGER,
