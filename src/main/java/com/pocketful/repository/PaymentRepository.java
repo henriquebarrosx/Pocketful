@@ -11,7 +11,10 @@ import java.util.List;
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
     List<Payment> findAllByDeadlineAtLessThanEqualAndPayedIsFalseAndIsExpenseIsTrue(LocalDate date);
 
-    List<Payment> findAllByDeadlineAtBetween(@Param("startAt") LocalDate startAt, @Param("endAt") LocalDate endAt);
+    List<Payment> findAllByDeadlineAtBetweenOrderByCreatedAtAsc(
+        @Param("startAt") LocalDate startAt,
+        @Param("endAt") LocalDate endAt
+    );
 
     List<Payment> findAllByDeadlineAtGreaterThanEqual(LocalDate date);
 
