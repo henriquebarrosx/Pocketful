@@ -1,6 +1,6 @@
 CREATE SEQUENCE IF NOT EXISTS payment_categories_seq START WITH 1 INCREMENT BY 50;
 
-CREATE TABLE payment_categories
+CREATE TABLE IF NOT EXISTS payment_categories
 (
     id         BIGINT       NOT NULL,
     name       VARCHAR(255) NOT NULL    UNIQUE,

@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
 @Service
 public class PaymentService {
     private final EmailService emailService;
-    private final AccountService accountService;
     private final PaymentRepository paymentRepository;
     private final PaymentCategoryService paymentCategoryService;
     private final PaymentFrequencyService paymentFrequencyService;
@@ -36,64 +35,60 @@ public class PaymentService {
     private final PaymentGenerationQueueProducer paymentGenerationQueueProducer;
 
 
-    public List<Payment> findBy(LocalDate startAt, LocalDate endAt) {
+    public List<Payment> findBy(Account account, LocalDate startAt, LocalDate endAt) {
         LocalDate MIN_DATE = LocalDate.of(1970, 1, 1);
         LocalDate MAX_DATE = LocalDate.of(9999, 1, 1);
 
-        return paymentRepository.findAllByDeadlineAtBetweenOrderByCreatedAtAsc(
-                Objects.isNull(startAt) ? MIN_DATE : startAt,
-                Objects.isNull(endAt) ? MAX_DATE : endAt
+        return paymentRepository.findAllByAccountAndDeadlineAtBetweenOrderByCreatedAtAsc(
+            account,
+            Objects.isNull(startAt) ? MIN_DATE : startAt,
+            Objects.isNull(endAt) ? MAX_DATE : endAt
         );
     }
 
     public Payment findById(Long id) {
         return paymentRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Payment not found"));
+            .orElseThrow(() -> new NotFoundException("Payment not found"));
     }
 
     @Transactional
-    public Payment create(NewPaymentDTO newPaymentDTO) {
-        log.info("Creating payment start: {}", newPaymentDTO);
-
-        Account account = accountService.findById(newPaymentDTO.getAccountId());
-
+    public Payment create(Account account, NewPaymentDTO newPaymentDTO) {
         PaymentCategory paymentCategory = paymentCategoryService
-                .findById(newPaymentDTO.getPaymentCategoryId());
+            .findById(newPaymentDTO.getPaymentCategoryId());
 
         if (!isValidAmount(newPaymentDTO.getAmount())) {
             throw new BadRequestException("Amount should be greater or equals 0.");
         }
 
         PaymentFrequency paymentFrequency = paymentFrequencyService
-                .create(newPaymentDTO.getIsIndeterminate(), newPaymentDTO.getFrequencyTimes());
+            .create(newPaymentDTO.getIsIndeterminate(), newPaymentDTO.getFrequencyTimes());
 
         Payment payment = Payment.builder()
-                .account(account)
-                .paymentCategory(paymentCategory)
-                .paymentFrequency(paymentFrequency)
-                .amount(newPaymentDTO.getAmount())
-                .description(newPaymentDTO.getDescription())
-                .isExpense(newPaymentDTO.getIsExpense())
-                .payed(newPaymentDTO.getPayed())
-                .deadlineAt(newPaymentDTO.getDeadlineAt())
-                .build();
+            .account(account)
+            .paymentCategory(paymentCategory)
+            .paymentFrequency(paymentFrequency)
+            .amount(newPaymentDTO.getAmount())
+            .description(newPaymentDTO.getDescription())
+            .isExpense(newPaymentDTO.getIsExpense())
+            .payed(newPaymentDTO.getPayed())
+            .deadlineAt(newPaymentDTO.getDeadlineAt())
+            .build();
 
         paymentRepository.save(payment);
         paymentGenerationQueueProducer.processPaymentGeneration(payment);
-        log.info("Creating payment end: {}", payment);
-
         return payment;
     }
 
-    //    TODO: Adicionar validação para permitir que apenas a pessoa que criou possa atualizar
     @Transactional
-    public void update(Long id, PaymentEditionRequestDTO paymentParams) {
+    public void update(Account account, Long id, PaymentEditionRequestDTO paymentParams) {
         Payment payment = findById(id);
 
-        log.info("Updating payment start: {}", payment);
+        if (Boolean.FALSE.equals(payment.getAccount().getId().equals(account.getId()))) {
+            throw new NotFoundException("Payment not found");
+        }
 
         PaymentCategory paymentCategory = paymentCategoryService
-                .findById(paymentParams.getPaymentCategoryId());
+            .findById(paymentParams.getPaymentCategoryId());
 
         if (!isValidAmount(paymentParams.getAmount())) {
             throw new BadRequestException("Amount should be greater or equals 0.");
@@ -109,8 +104,26 @@ public class PaymentService {
 
         paymentRepository.save(payment);
         paymentEditionQueueProducer.processPaymentUpdate(payment, paymentParams.getType());
+    }
 
-        log.info("Updating payment end {}", payment);
+    @Transactional
+    public void delete(Account account, Long id, PaymentSelectionOption type) {
+        Payment payment = findById(id);
+
+        if (Boolean.FALSE.equals(payment.getAccount().getId().equals(account.getId()))) {
+            throw new NotFoundException("Payment not found");
+        }
+
+        if (type.equals(PaymentSelectionOption.THIS_PAYMENT)) {
+            paymentRepository.delete(payment);
+        } else if (type.equals(PaymentSelectionOption.THIS_AND_FUTURE_PAYMENTS)) {
+            paymentRepository.deleteAllByDeadlineAtGreaterThanEqual(payment.getDeadlineAt());
+        } else if (type.equals(PaymentSelectionOption.ALL_PAYMENTS)) {
+            paymentRepository.deleteAllByPaymentFrequency(payment.getPaymentFrequency());
+        }
+
+        boolean hasPayments = paymentRepository.existsPaymentByPaymentFrequency(payment.getPaymentFrequency());
+        if (!hasPayments) paymentFrequencyService.deleteById(payment.getPaymentFrequency().getId());
     }
 
     public void processPaymentGeneration(Payment payment) {
@@ -119,19 +132,19 @@ public class PaymentService {
 
         for (int index = 1; index < batchSize; index++) {
             LocalDate deadline = LocalDate.from(payment.getDeadlineAt())
-                    .plusMonths(index);
+                .plusMonths(index);
 
             payments.add(
-                    Payment.builder()
-                            .amount(payment.getAmount())
-                            .description(payment.getDescription())
-                            .deadlineAt(deadline)
-                            .payed(payment.getPayed())
-                            .isExpense(payment.getIsExpense())
-                            .paymentFrequency(payment.getPaymentFrequency())
-                            .account(payment.getAccount())
-                            .paymentCategory(payment.getPaymentCategory())
-                            .build()
+                Payment.builder()
+                    .amount(payment.getAmount())
+                    .description(payment.getDescription())
+                    .deadlineAt(deadline)
+                    .payed(payment.getPayed())
+                    .isExpense(payment.getIsExpense())
+                    .paymentFrequency(payment.getPaymentFrequency())
+                    .account(payment.getAccount())
+                    .paymentCategory(payment.getPaymentCategory())
+                    .build()
             );
         }
 
@@ -140,19 +153,19 @@ public class PaymentService {
 
     public void processPaymentEdition(Payment payment, PaymentSelectionOption type) {
         List<Payment> updatedPayments = getPaymentsBySelectionType(payment, type)
-                .stream()
-                .map((data) -> {
-                    LocalDate deadline = data.getDeadlineAt().withDayOfMonth(payment.getDeadlineAt().getDayOfMonth());
+            .stream()
+            .map((data) -> {
+                LocalDate deadline = data.getDeadlineAt().withDayOfMonth(payment.getDeadlineAt().getDayOfMonth());
 
-                    data.setAmount(payment.getAmount());
-                    data.setPaymentCategory(payment.getPaymentCategory());
-                    data.setDescription(payment.getDescription());
-                    data.setPayed(payment.getPayed());
-                    data.setIsExpense(payment.getIsExpense());
-                    data.setDeadlineAt(deadline);
-                    data.setUpdatedAt(LocalDateTime.now());
-                    return data;
-                }).toList();
+                data.setAmount(payment.getAmount());
+                data.setPaymentCategory(payment.getPaymentCategory());
+                data.setDescription(payment.getDescription());
+                data.setPayed(payment.getPayed());
+                data.setIsExpense(payment.getIsExpense());
+                data.setDeadlineAt(deadline);
+                data.setUpdatedAt(LocalDateTime.now());
+                return data;
+            }).toList();
 
         paymentRepository.saveAll(updatedPayments);
     }
@@ -163,10 +176,10 @@ public class PaymentService {
 
     public void notifyPendingPaymentsByDate(LocalDate date) {
         List<Payment> payments = paymentRepository
-                .findAllByDeadlineAtLessThanEqualAndPayedIsFalseAndIsExpenseIsTrue(date);
+            .findAllByDeadlineAtLessThanEqualAndPayedIsFalseAndIsExpenseIsTrue(date);
 
         Map<Account, List<Payment>> paymentsByAccounts = payments.stream()
-                .collect(Collectors.groupingBy(Payment::getAccount));
+            .collect(Collectors.groupingBy(Payment::getAccount));
 
         paymentsByAccounts.forEach((account, paymentList) -> {
             String to = account.getEmail();
@@ -175,8 +188,8 @@ public class PaymentService {
             Template textTemplate = emailService.getTemplate("lembrete-vencimento-text.ftl");
 
             List<PaymentModel> paymentsModel = paymentList.stream()
-                    .map(payment -> convertPaymentToModel(payment, date))
-                    .toList();
+                .map(payment -> convertPaymentToModel(payment, date))
+                .toList();
 
             Map<String, Object> model = new HashMap<>();
             model.put("account", account);
@@ -191,11 +204,11 @@ public class PaymentService {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
         return PaymentModel.builder()
-                .description(payment.getDescription())
-                .deadlineAt(dateTimeFormatter.format(payment.getDeadlineAt()))
-                .amount(currency.getValue())
-                .isOverdue(payment.getDeadlineAt().isBefore(date))
-                .build();
+            .description(payment.getDescription())
+            .deadlineAt(dateTimeFormatter.format(payment.getDeadlineAt()))
+            .amount(currency.getValue())
+            .isOverdue(payment.getDeadlineAt().isBefore(date))
+            .build();
     }
 
     private List<Payment> getPaymentsBySelectionType(Payment payment, PaymentSelectionOption type) {
@@ -212,22 +225,5 @@ public class PaymentService {
         }
 
         return payments;
-    }
-
-    //    TODO: Adicionar validação para permitir que apenas a pessoa que criou possa deletar
-    @Transactional
-    public void delete(Long id, PaymentSelectionOption type) {
-        Payment payment = findById(id);
-
-        if (type.equals(PaymentSelectionOption.THIS_PAYMENT)) {
-            paymentRepository.delete(payment);
-        } else if (type.equals(PaymentSelectionOption.THIS_AND_FUTURE_PAYMENTS)) {
-            paymentRepository.deleteAllByDeadlineAtGreaterThanEqual(payment.getDeadlineAt());
-        } else if (type.equals(PaymentSelectionOption.ALL_PAYMENTS)) {
-            paymentRepository.deleteAllByPaymentFrequency(payment.getPaymentFrequency());
-        }
-
-        boolean hasPayments = paymentRepository.existsPaymentByPaymentFrequency(payment.getPaymentFrequency());
-        if (!hasPayments) paymentFrequencyService.deleteById(payment.getPaymentFrequency().getId());
     }
 }

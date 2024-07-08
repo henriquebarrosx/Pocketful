@@ -1,6 +1,6 @@
 CREATE SEQUENCE IF NOT EXISTS payments_seq START WITH 1 INCREMENT BY 50;
 
-CREATE TABLE payments
+CREATE TABLE IF NOT EXISTS payments
 (
     id                      BIGINT       NOT NULL,
     amount                  FLOAT        NOT NULL,

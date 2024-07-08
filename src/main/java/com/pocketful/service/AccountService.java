@@ -1,17 +1,18 @@
 package com.pocketful.service;
 
 import com.pocketful.entity.Account;
+import com.pocketful.entity.AccountRole;
 import com.pocketful.exception.BadRequestException;
 import com.pocketful.exception.ConflictException;
 import com.pocketful.exception.NotFoundException;
 import com.pocketful.repository.AccountRepository;
 import com.pocketful.web.dto.account.NewAccountDTO;
-
 import lombok.AllArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
-import java.time.LocalDate;
 import java.util.regex.Pattern;
 
 @AllArgsConstructor
@@ -40,15 +41,26 @@ public class AccountService {
                         .name(newAccountDTO.getName())
                         .email(newAccountDTO.getEmail())
                         .phoneNumber(newAccountDTO.getPhoneNumber())
-                        .createdAt(LocalDate.now())
-                        .updatedAt(LocalDate.now())
+                        .password(encodePassword(newAccountDTO.getPassword()))
+                        .role(AccountRole.DEFAULT)
+                        .createdAt(LocalDateTime.now())
+                        .updatedAt(LocalDateTime.now())
                         .build()
         );
+    }
+
+    private String encodePassword(String password) {
+        return new BCryptPasswordEncoder().encode(password);
     }
 
     public Account findById(Long accountId) {
         return accountRepository.findById(accountId)
                 .orElseThrow(() -> new NotFoundException("Account id do not exist."));
+    }
+
+    public Account findByEmail(String email) {
+        return accountRepository.findAccountByEmail(email)
+            .orElseThrow(() -> new NotFoundException(String.format("No account found using email %s", email)));
     }
 
     boolean isValidPhoneNumber(String phoneNumber) {
