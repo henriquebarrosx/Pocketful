@@ -17,7 +17,7 @@ spring:
         format_sql: false
         order_inserts: true
         order_updates: true
-    show-sql: true
+    show-sql: false
 
   flyway:
     baseline-on-migrate: true
