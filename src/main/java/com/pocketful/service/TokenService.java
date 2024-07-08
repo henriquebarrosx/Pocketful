@@ -25,7 +25,7 @@ public class TokenService {
         try {
             return JWT.create()
                     .withIssuer(ISSUER)
-                    .withIssuedAt(creationDate())
+                    .withIssuedAt(getIssuedAt())
                     .withSubject(account.getEmail())
                     .sign(algorithm);
         } catch (Exception exception) {
@@ -43,7 +43,8 @@ public class TokenService {
             .getSubject();
     }
 
-    private Instant creationDate() {
-        return ZonedDateTime.now(ZoneId.of("America/Sao_Paulo")).toInstant();
+    private Instant getIssuedAt() {
+        ZoneId zone = ZoneId.of("America/Sao_Paulo");
+        return ZonedDateTime.now(zone).toInstant();
     }
 }
