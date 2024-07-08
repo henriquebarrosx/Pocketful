@@ -17,6 +17,5 @@ public class NewPaymentDTO {
     private LocalDate deadlineAt;
     private Integer frequencyTimes;
     private Boolean isIndeterminate;
-    private Long accountId;
     private Long paymentCategoryId;
 }

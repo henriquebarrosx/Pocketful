@@ -49,7 +49,7 @@ public class TokenService {
         String email = JWT.require(algorithm)
             .withIssuer(ISSUER)
             .build()
-            .verify(token)
+            .verify(sanitizeToken(token))
             .getSubject();
 
         return accountService.findByEmail(email);
@@ -62,6 +62,10 @@ public class TokenService {
 
     public void invalidateToken(String subject) {
         tokensBySubject.put(subject, "");
+    }
+
+    private String sanitizeToken(String token) {
+        return token.replace("Bearer ", "");
     }
 
     private Instant getIssuedAt() {
