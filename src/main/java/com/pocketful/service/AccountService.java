@@ -8,6 +8,7 @@ import com.pocketful.exception.NotFoundException;
 import com.pocketful.repository.AccountRepository;
 import com.pocketful.web.dto.account.NewAccountDTO;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +16,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.regex.Pattern;
 
+@Slf4j
 @AllArgsConstructor
 @Service
 public class AccountService {
@@ -24,24 +26,26 @@ public class AccountService {
         return accountRepository.findAll();
     }
 
-    public Account create(NewAccountDTO newAccountDTO) {
+    public Account create(NewAccountDTO request) {
         Boolean existsAccountByEmailOrPhoneNumber = accountRepository
-                .existsAccountByEmailOrPhoneNumber(newAccountDTO.getEmail(), newAccountDTO.getPhoneNumber());
+                .existsAccountByEmailOrPhoneNumber(request.getEmail(), request.getPhoneNumber());
 
         if (existsAccountByEmailOrPhoneNumber) {
+            log.error("Failed creating account using existent email and/or phone number: {} {}", request.getEmail(), request.getPhoneNumber());
             throw new ConflictException("An account with this email or phone number already exists.");
         }
 
-        if (!isValidPhoneNumber(newAccountDTO.getPhoneNumber())) {
+        if (!isValidPhoneNumber(request.getPhoneNumber())) {
+            log.error("Failed creating account using invalid phone number: {}", request.getPhoneNumber());
             throw new BadRequestException("Invalid account phone number. Please, provide valid country (Ex.: +55) and DDD number.");
         }
 
         return accountRepository.save(
                 Account.builder()
-                        .name(newAccountDTO.getName())
-                        .email(newAccountDTO.getEmail())
-                        .phoneNumber(newAccountDTO.getPhoneNumber())
-                        .password(encodePassword(newAccountDTO.getPassword()))
+                        .name(request.getName())
+                        .email(request.getEmail())
+                        .phoneNumber(request.getPhoneNumber())
+                        .password(encodePassword(request.getPassword()))
                         .role(AccountRole.DEFAULT)
                         .createdAt(LocalDateTime.now())
                         .updatedAt(LocalDateTime.now())
@@ -55,12 +59,18 @@ public class AccountService {
 
     public Account findById(Long accountId) {
         return accountRepository.findById(accountId)
-                .orElseThrow(() -> new NotFoundException("Account id do not exist."));
+                .orElseThrow(() -> {
+                    log.error("Account not found: id - {}", accountId);
+                    return new NotFoundException("Account not found");
+                });
     }
 
     public Account findByEmail(String email) {
         return accountRepository.findAccountByEmail(email)
-            .orElseThrow(() -> new NotFoundException(String.format("No account found using email %s", email)));
+            .orElseThrow(() -> {
+                log.error("Account email not found: {}", email);
+                return new NotFoundException("Account not found");
+            });
     }
 
     boolean isValidPhoneNumber(String phoneNumber) {

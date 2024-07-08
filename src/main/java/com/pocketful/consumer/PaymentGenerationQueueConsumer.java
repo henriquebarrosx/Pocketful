@@ -1,7 +1,7 @@
 package com.pocketful.consumer;
 
-import com.pocketful.entity.Payment;
 import com.pocketful.service.PaymentService;
+import com.pocketful.web.dto.payment.PaymentGenerationPayloadDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -15,9 +15,9 @@ public class PaymentGenerationQueueConsumer {
     private final PaymentService paymentService;
 
     @RabbitListener(queues = {"${queue.payments_generation_queue}"})
-    public void receive(@Payload Payment payment) {
-        log.info("PaymentGenerationQueueConsumer.receive start payload: {}", payment);
-        paymentService.processPaymentGeneration(payment);
-        log.info("PaymentGenerationQueueConsumer.receive end payload: {}", payment);
+    public void receive(@Payload PaymentGenerationPayloadDTO payload) {
+        log.info("Payment generation queue listener started: payment id - {}", payload.getId());
+        paymentService.processPaymentGeneration(payload);
+        log.info("Payment generation queue listener finished: payment id - {}", payload.getId());
     }
 }

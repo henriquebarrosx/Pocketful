@@ -17,8 +17,8 @@ public class PaymentEditionQueueConsumer {
 
     @RabbitListener(queues = {"${queue.payments_edition_queue}"})
     public void receive(@Payload PaymentEditionQueuePayload payload) {
-        log.info("PaymentEditionQueueConsumer.receive start payload: {}", payload);
+        log.info("Payment edition queue listener started: payment id - {} | type {}", payload.getPayment().getId(), payload.getType());
         paymentService.processPaymentEdition(payload.getPayment(), payload.getType());
-        log.info("PaymentEditionQueueConsumer.receive end payload: {}", payload);
+        log.info("Payment edition queue listener finished: payment id - {} | type {}", payload.getPayment().getId(), payload.getType());
     }
 }

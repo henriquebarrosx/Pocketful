@@ -13,6 +13,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -57,7 +58,7 @@ public class TokenService {
 
     public Boolean validateToken(String subject, String token) {
         String accessToken = tokensBySubject.get(subject);
-        return accessToken.equals(token);
+        return Objects.nonNull(accessToken) && accessToken.equals(token);
     }
 
     public void invalidateToken(String subject) {

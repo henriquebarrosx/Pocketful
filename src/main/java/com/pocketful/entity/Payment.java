@@ -21,7 +21,7 @@ public class Payment {
     private Long id;
 
     @Column(nullable = false)
-    private float amount;
+    private Float amount;
 
     @Column(nullable = false)
     private String description;

@@ -33,13 +33,13 @@ public class PaymentController {
         @RequestHeader Map<String, String> headers
     ) {
         Account account = tokenService.decodeToken(headers.get("authorization"));
-        log.info("Getting payments by account {} from {} to {} - START", account, startAt, endAt);
+        log.info("Getting payments between two dates: account id - {} | started at - {} | ended at - {}", account.getId(), startAt, endAt);
 
         List<PaymentDTO> payments = paymentService.findBy(account, startAt, endAt).stream()
                 .map(paymentDTOMapper)
                 .toList();
 
-        log.info("Getting payments by account {} from {} to {} - END", account, startAt, endAt);
+        log.info("Payments retrieved by account between two dates: totals - {} | account id - {} | started at - {} | ended at - {}", payments.size(), account.getId(), startAt, endAt);
         return ResponseEntity.status(HttpStatus.OK).body(payments);
     }
 
@@ -50,11 +50,26 @@ public class PaymentController {
     ) {
         Account account = tokenService.decodeToken(headers.get("authorization"));
 
-        log.info("Creating payment by account {}: {} - START", account, request);
+        log.info("Creating payment: account id - {} | params - {}", account.getId(), request);
         Payment payment = paymentService.create(account, request);
-        log.info("Creating payment by account {}: {} - END", account, request);
+        log.info("Payment created successfully: account id - {} | params - {} | payment - {}", account.getId(), request, payment);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(new PaymentIdDTO(payment.getId()));
+    }
+
+    @PutMapping("{id}")
+    public ResponseEntity<Void> update(
+            @PathVariable Long id,
+            @RequestHeader Map<String, String> headers,
+            @RequestBody PaymentEditionRequestDTO request
+    ) {
+        Account account = tokenService.decodeToken(headers.get("authorization"));
+
+        log.info("Updating payment by account: account id - {} | params - {}", account, request);
+        paymentService.update(account, id, request);
+        log.info("Updating payment by account: account id - {} | params - {}", account, request);
+
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     @DeleteMapping("{id}")
@@ -65,24 +80,9 @@ public class PaymentController {
     ) {
         Account account = tokenService.decodeToken(headers.get("authorization"));
 
-        log.info("Deleting payment by account {}: {} - START", account, request);
+        log.info("Deleting payment by account: account id - {} | params - {}", account, request);
         paymentService.delete(account, id, request.type());
-        log.info("Deleting payment by account {}: {} - END", account, request);
-
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-    }
-
-    @PutMapping("{id}")
-    public ResponseEntity<Void> update(
-        @PathVariable Long id,
-        @RequestHeader Map<String, String> headers,
-        @RequestBody PaymentEditionRequestDTO request
-    ) {
-        Account account = tokenService.decodeToken(headers.get("authorization"));
-
-        log.info("Updating payment by account {}: {} - START", account, request);
-        paymentService.update(account, id, request);
-        log.info("Updating payment by account {}: {} - END", account, request);
+        log.info("Payment deleted successfully: account id - {} | params - {}", account, request);
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }

@@ -26,25 +26,26 @@ public class AuthController {
 
     @PostMapping("sign-in")
     ResponseEntity<AuthenticatedAccountDTO> signIn(@RequestBody AccountAuthDTO request) {
-        log.info("Authenticating account {} - START", request.email());
+        log.info("Authenticating account: email - {}", request.email());
         AuthenticatedAccountDTO account = authenticate(request);
-        log.info("Authenticating account {} - END", request.email());
+        log.info("Account authenticated successfully: email - {}", request.email());
         return ResponseEntity.status(HttpStatus.OK).body(account);
     }
 
     @PostMapping("sign-up")
     ResponseEntity<AccountIdDTO> signUp(@RequestBody NewAccountDTO request) {
-        log.info("Creating new account - START: {} {}", request.getName(), request.getEmail());
+        log.info("Creating new account: name - {} | email - {} | phone number - {}", request.getName(), request.getEmail(), request.getPhoneNumber());
         Account account = accountService.create(request);
-        log.info("Creating new account - END: {} {}", request.getName(), request.getEmail());
+        log.info("Account created successfully: name - {} | email - {} | phone number - {}", request.getName(), request.getEmail(), request.getPhoneNumber());
+
         return ResponseEntity.status(HttpStatus.CREATED).body(new AccountIdDTO(account.getId()));
     }
 
     @PostMapping("sign-out")
     ResponseEntity<Void> signOut(@RequestBody AccountEmailDTO request) {
-        log.info("Signing out account {} - START", request.email());
+        log.info("Signing out account: email - {}", request.email());
         tokenService.invalidateToken(request.email());
-        log.info("Signing out account {} - END", request.email());
+        log.info("account signed out successfully: email - {}", request.email());
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }

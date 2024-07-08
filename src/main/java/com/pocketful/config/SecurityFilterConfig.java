@@ -30,6 +30,8 @@ public class SecurityFilterConfig extends OncePerRequestFilter {
             if (tokenService.validateToken(account.getEmail(), token)) {
                 var authentication = new UsernamePasswordAuthenticationToken(account, null, account.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+            } else {
+                logger.error("Invalid provided access token");
             }
         }
 
