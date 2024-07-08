@@ -10,11 +10,14 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @Service
 public class TokenService {
     public static final String ISSUER = "auth0";
+    private final Map<String, String> tokensBySubject = new HashMap<>();
 
     @Value("${security.token}")
     private String secret;
@@ -23,11 +26,14 @@ public class TokenService {
         Algorithm algorithm = Algorithm.HMAC256(secret);
 
         try {
-            return JWT.create()
-                    .withIssuer(ISSUER)
-                    .withIssuedAt(getIssuedAt())
-                    .withSubject(account.getEmail())
-                    .sign(algorithm);
+            String token = JWT.create()
+                .withIssuer(ISSUER)
+                .withIssuedAt(getIssuedAt())
+                .withSubject(account.getEmail())
+                .sign(algorithm);
+
+            tokensBySubject.put(account.getEmail(), token);
+            return token;
         } catch (Exception exception) {
             throw new RuntimeException("Something wrong at JWT token generation", exception);
         }
@@ -41,6 +47,15 @@ public class TokenService {
             .build()
             .verify(token)
             .getSubject();
+    }
+
+    public Boolean validateToken(String subject, String token) {
+        String accessToken = tokensBySubject.get(subject);
+        return accessToken.equals(token);
+    }
+
+    public void invalidateToken(String subject) {
+        tokensBySubject.put(subject, "");
     }
 
     private Instant getIssuedAt() {

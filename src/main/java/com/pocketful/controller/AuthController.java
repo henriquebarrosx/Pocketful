@@ -3,10 +3,7 @@ package com.pocketful.controller;
 import com.pocketful.entity.Account;
 import com.pocketful.service.AccountService;
 import com.pocketful.service.TokenService;
-import com.pocketful.web.dto.account.AccountAuthDTO;
-import com.pocketful.web.dto.account.AccountIdDTO;
-import com.pocketful.web.dto.account.AuthenticatedAccountDTO;
-import com.pocketful.web.dto.account.NewAccountDTO;
+import com.pocketful.web.dto.account.*;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -29,9 +26,9 @@ public class AuthController {
 
     @PostMapping("sign-in")
     ResponseEntity<AuthenticatedAccountDTO> signIn(@RequestBody AccountAuthDTO request) {
-        log.info("Authenticating account with email {} - START", request.email());
+        log.info("Authenticating account {} - START", request.email());
         AuthenticatedAccountDTO account = authenticate(request);
-        log.info("Authenticating account with email {} - END", request.email());
+        log.info("Authenticating account {} - END", request.email());
         return ResponseEntity.status(HttpStatus.OK).body(account);
     }
 
@@ -41,6 +38,15 @@ public class AuthController {
         Account account = accountService.create(request);
         log.info("Creating new account - END: {} {}", request.getName(), request.getEmail());
         return ResponseEntity.status(HttpStatus.CREATED).body(new AccountIdDTO(account.getId()));
+    }
+
+    @PostMapping("sign-out")
+    ResponseEntity<Void> signOut(@RequestBody AccountEmailDTO request) {
+        log.info("Signing out account {} - START", request.email());
+        tokenService.invalidateToken(request.email());
+        log.info("Signing out account {} - END", request.email());
+
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     private AuthenticatedAccountDTO authenticate(AccountAuthDTO request) {
