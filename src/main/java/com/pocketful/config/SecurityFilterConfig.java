@@ -1,7 +1,6 @@
 package com.pocketful.config;
 
 import com.pocketful.entity.Account;
-import com.pocketful.service.AccountService;
 import com.pocketful.service.TokenService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -20,17 +19,15 @@ import java.util.Objects;
 @Component
 public class SecurityFilterConfig extends OncePerRequestFilter {
     private final TokenService tokenService;
-    private final AccountService accountService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         var token = this.recoverToken(request);
 
         if (Objects.nonNull(token)) {
-            String email = tokenService.decodeToken(token);
-            Account account = accountService.findByEmail(email);
+            Account account = tokenService.decodeToken(token);
 
-            if (tokenService.validateToken(email, token)) {
+            if (tokenService.validateToken(account.getEmail(), token)) {
                 var authentication = new UsernamePasswordAuthenticationToken(account, null, account.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }

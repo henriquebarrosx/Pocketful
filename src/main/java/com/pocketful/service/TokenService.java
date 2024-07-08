@@ -3,6 +3,7 @@ package com.pocketful.service;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.pocketful.entity.Account;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -13,10 +14,13 @@ import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
+@RequiredArgsConstructor
 @Slf4j
 @Service
 public class TokenService {
-    public static final String ISSUER = "auth0";
+    private final AccountService accountService;
+
+    private final String ISSUER = "auth0";
     private final Map<String, String> tokensBySubject = new HashMap<>();
 
     @Value("${security.token}")
@@ -39,14 +43,16 @@ public class TokenService {
         }
     }
 
-    public String decodeToken(String token) {
+    public Account decodeToken(String token) {
         Algorithm algorithm = Algorithm.HMAC256(secret);
 
-        return JWT.require(algorithm)
+        String email = JWT.require(algorithm)
             .withIssuer(ISSUER)
             .build()
             .verify(token)
             .getSubject();
+
+        return accountService.findByEmail(email);
     }
 
     public Boolean validateToken(String subject, String token) {
