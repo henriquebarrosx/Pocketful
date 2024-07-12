@@ -13,7 +13,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.regex.Pattern;
 
 @Slf4j
@@ -21,10 +20,6 @@ import java.util.regex.Pattern;
 @Service
 public class AccountService {
     private final AccountRepository accountRepository;
-
-    public List<Account> findAll() {
-        return accountRepository.findAll();
-    }
 
     public Account create(NewAccountDTO request) {
         Boolean existsAccountByEmailOrPhoneNumber = accountRepository
