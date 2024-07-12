@@ -3,13 +3,14 @@ package com.pocketful.service;
 import com.pocketful.entity.Currency;
 import com.pocketful.entity.*;
 import com.pocketful.enums.PaymentSelectionOption;
-import com.pocketful.exception.BadRequestException;
-import com.pocketful.exception.NotFoundException;
+import com.pocketful.exception.InvalidPaymentAmountException;
+import com.pocketful.exception.PaymentNotFoundException;
 import com.pocketful.producer.PaymentEditionQueueProducer;
 import com.pocketful.producer.PaymentGenerationQueueProducer;
 import com.pocketful.repository.PaymentRepository;
 import com.pocketful.web.dto.payment.NewPaymentDTO;
 import com.pocketful.web.dto.payment.PaymentEditionRequestDTO;
+import com.pocketful.web.dto.payment.PaymentGenerationPayloadDTO;
 import com.pocketful.web.view.payment.PaymentModel;
 import freemarker.template.Template;
 import jakarta.transaction.Transactional;
@@ -28,12 +29,12 @@ import java.util.stream.Collectors;
 @Service
 public class PaymentService {
     private final EmailService emailService;
+    private final AccountService accountService;
     private final PaymentRepository paymentRepository;
     private final PaymentCategoryService paymentCategoryService;
     private final PaymentFrequencyService paymentFrequencyService;
     private final PaymentEditionQueueProducer paymentEditionQueueProducer;
     private final PaymentGenerationQueueProducer paymentGenerationQueueProducer;
-
 
     public List<Payment> findBy(Account account, LocalDate startAt, LocalDate endAt) {
         LocalDate MIN_DATE = LocalDate.of(1970, 1, 1);
@@ -48,50 +49,54 @@ public class PaymentService {
 
     public Payment findById(Long id) {
         return paymentRepository.findById(id)
-            .orElseThrow(() -> new NotFoundException("Payment not found"));
+            .orElseThrow(() -> new PaymentNotFoundException(id));
     }
 
-    @Transactional
-    public Payment create(Account account, NewPaymentDTO newPaymentDTO) {
+    public Payment create(Account account, NewPaymentDTO paymentParams) {
         PaymentCategory paymentCategory = paymentCategoryService
-            .findById(newPaymentDTO.getPaymentCategoryId());
+            .findById(paymentParams.getPaymentCategoryId());
 
-        if (!isValidAmount(newPaymentDTO.getAmount())) {
-            throw new BadRequestException("Amount should be greater or equals 0.");
+        if (!isValidAmount(paymentParams.getAmount())) {
+            throw new InvalidPaymentAmountException();
         }
 
         PaymentFrequency paymentFrequency = paymentFrequencyService
-            .create(newPaymentDTO.getIsIndeterminate(), newPaymentDTO.getFrequencyTimes());
+            .create(paymentParams.getIsIndeterminate(), paymentParams.getFrequencyTimes());
 
-        Payment payment = Payment.builder()
-            .account(account)
-            .paymentCategory(paymentCategory)
-            .paymentFrequency(paymentFrequency)
-            .amount(newPaymentDTO.getAmount())
-            .description(newPaymentDTO.getDescription())
-            .isExpense(newPaymentDTO.getIsExpense())
-            .payed(newPaymentDTO.getPayed())
-            .deadlineAt(newPaymentDTO.getDeadlineAt())
-            .build();
+        Payment payment = this.getPaymentBuilder(account, paymentParams, paymentCategory, paymentFrequency);
 
         paymentRepository.save(payment);
+        log.info("Payment created successfully: account - {} | payment id - {}", account.getId(), payment.getId());
+
         paymentGenerationQueueProducer.processPaymentGeneration(payment);
         return payment;
     }
 
-    @Transactional
+    private Payment getPaymentBuilder(Account account, NewPaymentDTO paymentParams, PaymentCategory paymentCategory, PaymentFrequency paymentFrequency) {
+        return Payment.builder()
+                .account(account)
+                .paymentCategory(paymentCategory)
+                .paymentFrequency(paymentFrequency)
+                .amount(paymentParams.getAmount())
+                .description(paymentParams.getDescription())
+                .isExpense(paymentParams.getIsExpense())
+                .payed(paymentParams.getPayed())
+                .deadlineAt(paymentParams.getDeadlineAt())
+                .build();
+    }
+
     public void update(Account account, Long id, PaymentEditionRequestDTO paymentParams) {
         Payment payment = findById(id);
 
         if (Boolean.FALSE.equals(payment.getAccount().getId().equals(account.getId()))) {
-            throw new NotFoundException("Payment not found");
+            throw new PaymentNotFoundException(id);
         }
 
         PaymentCategory paymentCategory = paymentCategoryService
             .findById(paymentParams.getPaymentCategoryId());
 
         if (!isValidAmount(paymentParams.getAmount())) {
-            throw new BadRequestException("Amount should be greater or equals 0.");
+            throw new InvalidPaymentAmountException();
         }
 
         payment.setAmount(paymentParams.getAmount());
@@ -111,7 +116,7 @@ public class PaymentService {
         Payment payment = findById(id);
 
         if (Boolean.FALSE.equals(payment.getAccount().getId().equals(account.getId()))) {
-            throw new NotFoundException("Payment not found");
+            throw new PaymentNotFoundException(id);
         }
 
         if (type.equals(PaymentSelectionOption.THIS_PAYMENT)) {
@@ -126,24 +131,27 @@ public class PaymentService {
         if (!hasPayments) paymentFrequencyService.deleteById(payment.getPaymentFrequency().getId());
     }
 
-    public void processPaymentGeneration(Payment payment) {
-        int batchSize = payment.getPaymentFrequency().getTimes();
-        List<Payment> payments = new ArrayList<>(batchSize - 1);
+    public void processPaymentGeneration(PaymentGenerationPayloadDTO payload) {
+        PaymentFrequency frequency = paymentFrequencyService.findById(payload.getPaymentFrequencyId());
+        PaymentCategory category = paymentCategoryService.findById(payload.getPaymentCategoryId());
+        Account account = accountService.findById(payload.getAccountId());
 
-        for (int index = 1; index < batchSize; index++) {
-            LocalDate deadline = LocalDate.from(payment.getDeadlineAt())
+        List<Payment> payments = new ArrayList<>(frequency.getTimes() - 1);
+
+        for (int index = 1; index < frequency.getTimes(); index++) {
+            LocalDate deadline = LocalDate.from(payload.getDeadlineAt())
                 .plusMonths(index);
 
             payments.add(
                 Payment.builder()
-                    .amount(payment.getAmount())
-                    .description(payment.getDescription())
+                    .amount(payload.getAmount())
+                    .description(payload.getDescription())
+                    .payed(payload.getPayed())
+                    .isExpense(payload.getIsExpense())
                     .deadlineAt(deadline)
-                    .payed(payment.getPayed())
-                    .isExpense(payment.getIsExpense())
-                    .paymentFrequency(payment.getPaymentFrequency())
-                    .account(payment.getAccount())
-                    .paymentCategory(payment.getPaymentCategory())
+                    .account(account)
+                    .paymentCategory(category)
+                    .paymentFrequency(frequency)
                     .build()
             );
         }
@@ -170,10 +178,6 @@ public class PaymentService {
         paymentRepository.saveAll(updatedPayments);
     }
 
-    private Boolean isValidAmount(float amount) {
-        return amount > 0;
-    }
-
     public void notifyPendingPaymentsByDate(LocalDate date) {
         List<Payment> payments = paymentRepository
             .findAllByDeadlineAtLessThanEqualAndPayedIsFalseAndIsExpenseIsTrue(date);
@@ -196,7 +200,12 @@ public class PaymentService {
             model.put("payments", paymentsModel);
 
             emailService.send(to, subject, textTemplate, htmlTemplate, model);
+            log.info("Due date reminder sent to account email: account id - {} ({}) | total payments - {}", account.getId(), to, paymentsModel.size());
         });
+    }
+
+    private Boolean isValidAmount(float amount) {
+        return amount >= 0;
     }
 
     private PaymentModel convertPaymentToModel(Payment payment, LocalDate date) {

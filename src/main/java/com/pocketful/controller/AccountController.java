@@ -25,27 +25,19 @@ public class AccountController {
 
     @GetMapping
     public ResponseEntity<List<AccountDTO>> getAll() {
-        log.info("Getting all accounts - START");
+        log.info("Getting all accounts");
 
         List<AccountDTO> accounts = accountService.findAll().stream()
                 .map(accountDTOMapper)
                 .toList();
 
-        log.info("Getting all accounts - END: {}", accounts);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(accounts);
+        return ResponseEntity.status(HttpStatus.OK).body(accounts);
     }
 
     @GetMapping("{id}")
     public ResponseEntity<AccountDTO> getBydId(@PathVariable Long id) {
-        log.info("Getting an account by id {} - START", id);
+        log.info("Getting an account by id - {}", id);
         Account account = accountService.findById(id);
-        log.info("Getting an account by id {} - END", account);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(accountDTOMapper.apply(account));
+        return ResponseEntity.status(HttpStatus.OK).body(accountDTOMapper.apply(account));
     }
 }

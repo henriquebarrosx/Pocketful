@@ -12,6 +12,7 @@ import com.pocketful.repository.PaymentRepository;
 import com.pocketful.utils.AccountBuilder;
 import com.pocketful.utils.PaymentBuilder;
 import com.pocketful.utils.PaymentFrequencyBuilder;
+import com.pocketful.web.dto.payment.PaymentGenerationPayloadDTO;
 import freemarker.template.Template;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -134,7 +135,19 @@ class PaymentServiceTest {
         PaymentFrequency paymentFrequency = paymentFrequencyRepository.save(PaymentFrequencyBuilder.buildPaymentFrequency(times));
         Payment payment = PaymentBuilder.buildPayment(account, category, paymentFrequency);
 
-        paymentService.processPaymentGeneration(payment);
+        PaymentGenerationPayloadDTO payload = PaymentGenerationPayloadDTO.builder()
+                .id(payment.getId())
+                .amount(payment.getAmount())
+                .description(payment.getDescription())
+                .payed(payment.getPayed())
+                .isExpense(payment.getIsExpense())
+                .deadlineAt(payment.getDeadlineAt())
+                .accountId(payment.getAccount().getId())
+                .paymentCategoryId(payment.getPaymentCategory().getId())
+                .paymentFrequencyId(payment.getPaymentFrequency().getId())
+                .build();
+
+        paymentService.processPaymentGeneration(payload);
 
         assertEquals(times - 1, paymentRepository.count());
     }

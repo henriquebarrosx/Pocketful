@@ -1,15 +1,17 @@
 package com.pocketful.service;
 
 import com.pocketful.entity.PaymentCategory;
-import com.pocketful.exception.ConflictException;
-import com.pocketful.exception.NotFoundException;
+import com.pocketful.exception.PaymentCategoryAlreadyExistException;
+import com.pocketful.exception.PaymentCategoryNotFoundException;
 import com.pocketful.repository.PaymentCategoryRepository;
 import com.pocketful.web.dto.payment_category.NewPaymentCategoryDTO;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Slf4j
 @AllArgsConstructor
 @Service
 public class PaymentCategoryService {
@@ -19,32 +21,29 @@ public class PaymentCategoryService {
         return paymentCategoryRepository.findAll();
     }
 
-    public PaymentCategory create(NewPaymentCategoryDTO newPaymentCategoryDTO) {
+    public PaymentCategory create(NewPaymentCategoryDTO request) {
         Boolean existsPaymentWithName = paymentCategoryRepository
-                .existsPaymentCategoryByName(newPaymentCategoryDTO.getName());
+                .existsPaymentCategoryByName(request.getName());
 
         if (existsPaymentWithName) {
-            throw new ConflictException("Payment category already exists.");
+            throw new PaymentCategoryAlreadyExistException(request.getName());
         }
 
-        return paymentCategoryRepository.save(
-                PaymentCategory.builder()
-                        .name(newPaymentCategoryDTO.getName())
-                        .build()
-        );
+        PaymentCategory category = PaymentCategory.builder().name(request.getName()).build();
+        return paymentCategoryRepository.save(category);
     }
 
-    public PaymentCategory update(Long id, NewPaymentCategoryDTO paymentCategoryDTO) {
+    public PaymentCategory update(Long id, NewPaymentCategoryDTO request) {
         PaymentCategory paymentCategory = findById(id);
 
         Boolean existsPaymentCategoryByName = paymentCategoryRepository
-                .existsPaymentCategoryByName(paymentCategoryDTO.getName());
+                .existsPaymentCategoryByName(request.getName());
 
         if (existsPaymentCategoryByName) {
-            throw new ConflictException("Payment category already exists.");
+            throw new PaymentCategoryAlreadyExistException(request.getName());
         }
 
-        paymentCategory.setName(paymentCategoryDTO.getName());
+        paymentCategory.setName(request.getName());
         return paymentCategoryRepository.save(paymentCategory);
     }
 
@@ -55,6 +54,6 @@ public class PaymentCategoryService {
 
     public PaymentCategory findById(Long id) {
         return paymentCategoryRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Payment Category not found"));
+                .orElseThrow(() -> new PaymentCategoryNotFoundException(id));
     }
 }

@@ -8,7 +8,6 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
-
 @Slf4j
 @AllArgsConstructor
 @Component
@@ -17,8 +16,7 @@ public class PaymentEditionQueueConsumer {
 
     @RabbitListener(queues = {"${queue.payments_edition_queue}"})
     public void receive(@Payload PaymentEditionQueuePayload payload) {
-        log.info("PaymentEditionQueueConsumer.receive start payload: {}", payload);
+        log.info("Payment edition queue listener started: payment id - {} | type {}", payload.getPayment().getId(), payload.getType());
         paymentService.processPaymentEdition(payload.getPayment(), payload.getType());
-        log.info("PaymentEditionQueueConsumer.receive end payload: {}", payload);
     }
 }
