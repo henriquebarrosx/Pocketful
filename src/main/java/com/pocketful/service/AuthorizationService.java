@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 
 @AllArgsConstructor
 @Service
-public class AuthService implements UserDetailsService {
+public class AuthorizationService implements UserDetailsService {
     private final AccountService accountService;
 
     @Override
