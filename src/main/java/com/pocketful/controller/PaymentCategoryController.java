@@ -29,8 +29,6 @@ public class PaymentCategoryController {
                 .map(paymentCategoryDTOMapper)
                 .toList();
 
-        log.info("Payments categories retrieved: {}", paymentCategories);
-
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(paymentCategories);
@@ -38,9 +36,8 @@ public class PaymentCategoryController {
 
     @GetMapping("{id}")
     public ResponseEntity<PaymentCategoryDTO> getById(@PathVariable Long id) {
-        log.info("Getting payment category: id - {}", id);
+        log.info("Getting payment category by id - {}", id);
         PaymentCategory category = paymentCategoriesService.findById(id);
-        log.info("Retrieved payment category: id - {} | category - {}", id, category.getName());
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -53,8 +50,6 @@ public class PaymentCategoryController {
 
         PaymentCategory paymentCategory = paymentCategoriesService
                 .create(request);
-
-        log.info("Payment category created successfully: id - {} | name - {}", paymentCategory.getId(), paymentCategory.getName());
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -71,8 +66,6 @@ public class PaymentCategoryController {
         PaymentCategory paymentCategory = paymentCategoriesService
                 .update(id, request);
 
-        log.info("Payment category updated successfully: id - {} | name - {}", id, paymentCategory.getName());
-
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(paymentCategoryDTOMapper.apply(paymentCategory));
@@ -82,7 +75,6 @@ public class PaymentCategoryController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         log.info("Deleting payment category: id - {}", id);
         paymentCategoriesService.delete(id);
-        log.info("Payment category deleted successfully: id - {}", id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

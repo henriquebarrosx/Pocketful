@@ -3,8 +3,8 @@ package com.pocketful.service;
 import com.pocketful.entity.Currency;
 import com.pocketful.entity.*;
 import com.pocketful.enums.PaymentSelectionOption;
-import com.pocketful.exception.BadRequestException;
-import com.pocketful.exception.NotFoundException;
+import com.pocketful.exception.InvalidPaymentAmountException;
+import com.pocketful.exception.PaymentNotFoundException;
 import com.pocketful.producer.PaymentEditionQueueProducer;
 import com.pocketful.producer.PaymentGenerationQueueProducer;
 import com.pocketful.repository.PaymentRepository;
@@ -49,10 +49,7 @@ public class PaymentService {
 
     public Payment findById(Long id) {
         return paymentRepository.findById(id)
-            .orElseThrow(() -> {
-                log.error("Payment by not found: id - {}", id);
-                return new NotFoundException("Payment not found");
-            });
+            .orElseThrow(() -> new PaymentNotFoundException(id));
     }
 
     public Payment create(Account account, NewPaymentDTO paymentParams) {
@@ -60,8 +57,7 @@ public class PaymentService {
             .findById(paymentParams.getPaymentCategoryId());
 
         if (!isValidAmount(paymentParams.getAmount())) {
-            log.error("Failed creating payment with invalid amount: account - {} | amount - {}", account.getId(), paymentParams.getAmount());
-            throw new BadRequestException("Amount should be greater or equals 0.");
+            throw new InvalidPaymentAmountException();
         }
 
         PaymentFrequency paymentFrequency = paymentFrequencyService
@@ -70,7 +66,7 @@ public class PaymentService {
         Payment payment = this.getPaymentBuilder(account, paymentParams, paymentCategory, paymentFrequency);
 
         paymentRepository.save(payment);
-        log.info("Payment created successfully: account - {} | payment - {}", account.getId(), payment.getId());
+        log.info("Payment created successfully: account - {} | payment id - {}", account.getId(), payment.getId());
 
         paymentGenerationQueueProducer.processPaymentGeneration(payment);
         return payment;
@@ -93,16 +89,14 @@ public class PaymentService {
         Payment payment = findById(id);
 
         if (Boolean.FALSE.equals(payment.getAccount().getId().equals(account.getId()))) {
-            log.error("Failed editing payment with invalid access: payment id {} | account id - {}", id, account.getId());
-            throw new NotFoundException("Payment not found");
+            throw new PaymentNotFoundException(id);
         }
 
         PaymentCategory paymentCategory = paymentCategoryService
             .findById(paymentParams.getPaymentCategoryId());
 
         if (!isValidAmount(paymentParams.getAmount())) {
-            log.error("Failed editing payment with invalid amount: payment id {} | account id - {} | amount - {}", id, account.getId(), paymentParams.getAmount());
-            throw new BadRequestException("Amount should be greater or equals 0.");
+            throw new InvalidPaymentAmountException();
         }
 
         payment.setAmount(paymentParams.getAmount());
@@ -114,7 +108,6 @@ public class PaymentService {
         payment.setUpdatedAt(LocalDateTime.now());
 
         paymentRepository.save(payment);
-        log.info("Payment updated successfully: account - {} | payment - {}", account.getId(), payment.getId());
         paymentEditionQueueProducer.processPaymentUpdate(payment, paymentParams.getType());
     }
 
@@ -123,8 +116,7 @@ public class PaymentService {
         Payment payment = findById(id);
 
         if (Boolean.FALSE.equals(payment.getAccount().getId().equals(account.getId()))) {
-            log.error("Failed editing payment with invalid access: payment id {} | account id - {}", id, account.getId());
-            throw new NotFoundException("Payment not found");
+            throw new PaymentNotFoundException(id);
         }
 
         if (type.equals(PaymentSelectionOption.THIS_PAYMENT)) {
@@ -137,7 +129,6 @@ public class PaymentService {
 
         boolean hasPayments = paymentRepository.existsPaymentByPaymentFrequency(payment.getPaymentFrequency());
         if (!hasPayments) paymentFrequencyService.deleteById(payment.getPaymentFrequency().getId());
-        log.info("Payment deleted successfully: account - {} | payment - {} | type - {}", account.getId(), payment.getId(), type);
     }
 
     public void processPaymentGeneration(PaymentGenerationPayloadDTO payload) {
@@ -166,7 +157,6 @@ public class PaymentService {
         }
 
         paymentRepository.saveAll(payments);
-        log.info("Payments created successfully: account - {} | payment - {} | totals - {}", payload.getAccountId(), payload.getId(), payments.size());
     }
 
     public void processPaymentEdition(Payment payment, PaymentSelectionOption type) {
@@ -186,7 +176,6 @@ public class PaymentService {
             }).toList();
 
         paymentRepository.saveAll(updatedPayments);
-        log.info("Payments updated successfully: account - {} | payment - {} | totals - {}", payment.getAccount().getId(), payment.getId(), updatedPayments.size());
     }
 
     public void notifyPendingPaymentsByDate(LocalDate date) {
@@ -211,7 +200,7 @@ public class PaymentService {
             model.put("payments", paymentsModel);
 
             emailService.send(to, subject, textTemplate, htmlTemplate, model);
-            log.info("Due date reminder sent to account email: account id - {} ({}) | payments - {}", account.getId(), to, paymentsModel);
+            log.info("Due date reminder sent to account email: account id - {} ({}) | total payments - {}", account.getId(), to, paymentsModel.size());
         });
     }
 

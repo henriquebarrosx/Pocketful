@@ -19,7 +19,7 @@ public class PaymentEditionQueueProducer {
     private String PAYMENTS_EDITION_QUEUE;
 
     public void processPaymentUpdate(Payment payment, PaymentSelectionOption type) {
-        rabbitTemplate.convertAndSend(PAYMENTS_EDITION_QUEUE, new PaymentEditionQueuePayload(payment, type));
         log.info("Payment edition queue notified: payment id - {} | type {}", payment.getId(), type);
+        rabbitTemplate.convertAndSend(PAYMENTS_EDITION_QUEUE, new PaymentEditionQueuePayload(payment, type));
     }
 }

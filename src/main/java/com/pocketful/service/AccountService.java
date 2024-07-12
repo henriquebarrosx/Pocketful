@@ -2,9 +2,9 @@ package com.pocketful.service;
 
 import com.pocketful.entity.Account;
 import com.pocketful.entity.AccountRole;
-import com.pocketful.exception.BadRequestException;
-import com.pocketful.exception.ConflictException;
-import com.pocketful.exception.NotFoundException;
+import com.pocketful.exception.AccountNotFoundException;
+import com.pocketful.exception.EmailOrPhoneNumberAlreadyExistException;
+import com.pocketful.exception.InvalidPhoneNumberException;
 import com.pocketful.repository.AccountRepository;
 import com.pocketful.web.dto.account.NewAccountDTO;
 import lombok.AllArgsConstructor;
@@ -31,13 +31,11 @@ public class AccountService {
                 .existsAccountByEmailOrPhoneNumber(request.getEmail(), request.getPhoneNumber());
 
         if (existsAccountByEmailOrPhoneNumber) {
-            log.error("Failed creating account using existent email and/or phone number: {} {}", request.getEmail(), request.getPhoneNumber());
-            throw new ConflictException("An account with this email or phone number already exists.");
+            throw new EmailOrPhoneNumberAlreadyExistException(request.getEmail(), request.getPhoneNumber());
         }
 
         if (!isValidPhoneNumber(request.getPhoneNumber())) {
-            log.error("Failed creating account using invalid phone number: {}", request.getPhoneNumber());
-            throw new BadRequestException("Invalid account phone number. Please, provide valid country (Ex.: +55) and DDD number.");
+            throw new InvalidPhoneNumberException();
         }
 
         return accountRepository.save(
@@ -57,20 +55,14 @@ public class AccountService {
         return new BCryptPasswordEncoder().encode(password);
     }
 
-    public Account findById(Long accountId) {
-        return accountRepository.findById(accountId)
-                .orElseThrow(() -> {
-                    log.error("Account not found: id - {}", accountId);
-                    return new NotFoundException("Account not found");
-                });
+    public Account findById(Long id) {
+        return accountRepository.findById(id)
+                .orElseThrow(() -> new AccountNotFoundException(id));
     }
 
     public Account findByEmail(String email) {
         return accountRepository.findAccountByEmail(email)
-            .orElseThrow(() -> {
-                log.error("Account email not found: {}", email);
-                return new NotFoundException("Account not found");
-            });
+            .orElseThrow(() -> new AccountNotFoundException(email));
     }
 
     boolean isValidPhoneNumber(String phoneNumber) {

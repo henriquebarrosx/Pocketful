@@ -31,17 +31,13 @@ public class AccountController {
                 .map(accountDTOMapper)
                 .toList();
 
-        log.info("Accounts retrieved: {}", accounts);
-
         return ResponseEntity.status(HttpStatus.OK).body(accounts);
     }
 
     @GetMapping("{id}")
     public ResponseEntity<AccountDTO> getBydId(@PathVariable Long id) {
-        log.info("Getting an account: id - {}", id);
+        log.info("Getting an account by id - {}", id);
         Account account = accountService.findById(id);
-        log.info("Getting an account: id - {}", account);
-
         return ResponseEntity.status(HttpStatus.OK).body(accountDTOMapper.apply(account));
     }
 }

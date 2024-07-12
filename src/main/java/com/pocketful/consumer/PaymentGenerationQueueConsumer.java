@@ -18,6 +18,5 @@ public class PaymentGenerationQueueConsumer {
     public void receive(@Payload PaymentGenerationPayloadDTO payload) {
         log.info("Payment generation queue listener started: payment id - {}", payload.getId());
         paymentService.processPaymentGeneration(payload);
-        log.info("Payment generation queue listener finished: payment id - {}", payload.getId());
     }
 }

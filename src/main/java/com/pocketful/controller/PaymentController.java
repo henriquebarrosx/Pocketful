@@ -39,7 +39,6 @@ public class PaymentController {
                 .map(paymentDTOMapper)
                 .toList();
 
-        log.info("Payments retrieved by account between two dates: totals - {} | account id - {} | started at - {} | ended at - {}", payments.size(), account.getId(), startAt, endAt);
         return ResponseEntity.status(HttpStatus.OK).body(payments);
     }
 
@@ -49,10 +48,8 @@ public class PaymentController {
         @RequestHeader Map<String, String> headers
     ) {
         Account account = tokenService.decodeToken(headers.get("authorization"));
-
-        log.info("Creating payment: account id - {} | params - {}", account.getId(), request);
+        log.info("Creating payment: account id - {} | description - {} | amount - {} | category id - {}", account.getId(), request.getDescription(), request.getAmount(), request.getPaymentCategoryId());
         Payment payment = paymentService.create(account, request);
-        log.info("Payment created successfully: account id - {} | params - {} | payment - {}", account.getId(), request, payment);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(new PaymentIdDTO(payment.getId()));
     }
@@ -64,10 +61,8 @@ public class PaymentController {
             @RequestBody PaymentEditionRequestDTO request
     ) {
         Account account = tokenService.decodeToken(headers.get("authorization"));
-
-        log.info("Updating payment by account: account id - {} | params - {}", account, request);
+        log.info("Updating payment: account id - {} | payment id - {} | type - {}", account.getId(), id, request.getType());
         paymentService.update(account, id, request);
-        log.info("Updating payment by account: account id - {} | params - {}", account, request);
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
@@ -79,10 +74,8 @@ public class PaymentController {
         @RequestHeader Map<String, String> headers
     ) {
         Account account = tokenService.decodeToken(headers.get("authorization"));
-
-        log.info("Deleting payment by account: account id - {} | params - {}", account, request);
+        log.info("Deleting payment by account: account id - {} | type - {}", account, request.type());
         paymentService.delete(account, id, request.type());
-        log.info("Payment deleted successfully: account id - {} | params - {}", account, request);
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }

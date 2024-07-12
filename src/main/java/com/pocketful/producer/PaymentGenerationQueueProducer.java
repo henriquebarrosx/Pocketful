@@ -18,9 +18,9 @@ public class PaymentGenerationQueueProducer {
     private String PAYMENTS_GENERATION_QUEUE;
 
     public void processPaymentGeneration(Payment payment) {
+        log.info("Payment generation queue notified: payment id - {}", payment.getId());
         PaymentGenerationPayloadDTO payload = getPaymentGenerationPayloadDTOBuilder(payment);
         rabbitTemplate.convertAndSend(PAYMENTS_GENERATION_QUEUE, payload);
-        log.info("Payment generation queue notified: payment id - {}", payment.getId());
     }
 
     private PaymentGenerationPayloadDTO getPaymentGenerationPayloadDTOBuilder(Payment payment) {

@@ -18,6 +18,6 @@ public class PaymentDueDateNotificationScheduler {
 
     @Scheduled(cron = "${scheduler.pending_payment_notification}")
     public void notifyInDeadlineDay() {
-        paymentService.notifyPendingPaymentsByDate(LocalDate.now());
+        paymentService.notifyPendingPaymentsByDate(LocalDate.now().plusDays(5));
     }
 }
