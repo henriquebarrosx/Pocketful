@@ -1,39 +1,20 @@
 package com.pocketful.utils;
 
 import com.pocketful.entity.Account;
-import com.pocketful.web.dto.account.NewAccountDTO;
+import com.pocketful.entity.AccountRole;
+
+import java.time.LocalDateTime;
 
 public class AccountBuilder {
-    public static Account buildAccount() {
+    public static Account build() {
         return Account.builder()
                 .id(1L)
                 .name("John Doe")
                 .email("john.doe@mail.com")
-                .phoneNumber("5582988776655")
-                .build();
-    }
-
-    public static Account buildAccount(String name, String email, String phone) {
-        return Account.builder()
-                .name(name)
-                .email(email)
-                .phoneNumber(phone)
-                .build();
-    }
-
-    public static NewAccountDTO buildNewAccountRequest() {
-        return NewAccountDTO.builder()
-                .email("john.doe@mail.com")
-                .phoneNumber("+5582991880022")
-                .name("John Doe")
-                .build();
-    }
-
-    public static NewAccountDTO buildNewAccountRequest(String phoneNumber) {
-        return NewAccountDTO.builder()
-                .email("john.doe@mail.com")
-                .phoneNumber(phoneNumber)
-                .name("John Doe")
+                .phoneNumber("+5582988779900")
+                .role(AccountRole.ADMIN)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
                 .build();
     }
 }
