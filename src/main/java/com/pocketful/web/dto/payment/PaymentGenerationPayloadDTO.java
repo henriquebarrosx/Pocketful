@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Getter
@@ -11,7 +12,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class PaymentGenerationPayloadDTO {
     private Long id;
-    private Float amount;
+    private BigDecimal amount;
     private String description;
     private Boolean payed;
     private Boolean isExpense;

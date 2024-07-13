@@ -3,6 +3,7 @@ package com.pocketful.entity;
 import lombok.AllArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
@@ -10,7 +11,7 @@ import java.util.Locale;
 @Setter
 @AllArgsConstructor
 public class Currency {
-    private float amount;
+    private BigDecimal amount;
 
     public String getValue() {
         Locale brazilLocale = new Locale("pt", "BR");

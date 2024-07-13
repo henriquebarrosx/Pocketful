@@ -5,6 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -21,7 +22,7 @@ public class Payment {
     private Long id;
 
     @Column(nullable = false)
-    private Float amount;
+    private BigDecimal amount;
 
     @Column(nullable = false)
     private String description;

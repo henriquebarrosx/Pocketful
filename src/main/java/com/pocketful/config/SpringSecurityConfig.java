@@ -23,19 +23,19 @@ public class SpringSecurityConfig {
     @Bean
     SecurityFilterChain getFilterChain(HttpSecurity http) throws Exception {
         return http
-            .csrf(AbstractHttpConfigurer::disable)
-            .sessionManagement(session -> {
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-            })
-            .authorizeHttpRequests(authorize -> {
-                authorize
-                    .requestMatchers("/v1/auth/**").permitAll()
-                    .requestMatchers("v1/accounts/**").hasRole("ADMIN")
-                    .requestMatchers("/v1/payments/categories/**").hasRole("ADMIN")
-                    .anyRequest().authenticated();
-            })
-            .addFilterBefore(securityFilterConfig, UsernamePasswordAuthenticationFilter.class)
-            .build();
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> {
+                    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+                })
+                .authorizeHttpRequests(authorize -> {
+                    authorize
+                            .requestMatchers("/v1/auth/sign-in").permitAll()
+                            .requestMatchers("/v1/auth/sign-up").permitAll()
+                            .requestMatchers("/v1/payments/categories/**").hasRole("ADMIN")
+                            .anyRequest().authenticated();
+                })
+                .addFilterBefore(securityFilterConfig, UsernamePasswordAuthenticationFilter.class)
+                .build();
     }
 
     @Bean

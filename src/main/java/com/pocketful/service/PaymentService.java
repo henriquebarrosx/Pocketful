@@ -18,6 +18,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -204,8 +205,8 @@ public class PaymentService {
         });
     }
 
-    private Boolean isValidAmount(float amount) {
-        return amount >= 0;
+    private Boolean isValidAmount(BigDecimal amount) {
+        return amount.compareTo(BigDecimal.valueOf(0)) >= 0;
     }
 
     private PaymentModel convertPaymentToModel(Payment payment, LocalDate date) {

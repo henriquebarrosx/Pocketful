@@ -6,8 +6,8 @@ import com.pocketful.exception.AccountNotFoundException;
 import com.pocketful.exception.EmailOrPhoneNumberAlreadyExistException;
 import com.pocketful.exception.InvalidPhoneNumberException;
 import com.pocketful.repository.AccountRepository;
-import com.pocketful.web.dto.account.NewAccountDTO;
-import lombok.AllArgsConstructor;
+import com.pocketful.web.dto.account.NewAccountRequestDTO;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,12 +16,12 @@ import java.time.LocalDateTime;
 import java.util.regex.Pattern;
 
 @Slf4j
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Service
 public class AccountService {
     private final AccountRepository accountRepository;
 
-    public Account create(NewAccountDTO request) {
+    public Account create(NewAccountRequestDTO request) {
         Boolean existsAccountByEmailOrPhoneNumber = accountRepository
                 .existsAccountByEmailOrPhoneNumber(request.getEmail(), request.getPhoneNumber());
 

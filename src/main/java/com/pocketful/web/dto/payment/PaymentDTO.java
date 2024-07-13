@@ -1,16 +1,18 @@
 package com.pocketful.web.dto.payment;
 
 import com.pocketful.web.dto.payment_category.PaymentCategoryDTO;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
 
-import java.time.LocalDate;
+import java.math.BigDecimal;
 
 @Getter
 @Builder
 @AllArgsConstructor
 public class PaymentDTO {
     private Long id;
-    private float amount;
+    private BigDecimal amount;
     private String description;
     private boolean payed;
     private boolean isExpense;
