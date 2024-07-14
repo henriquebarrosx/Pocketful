@@ -11,4 +11,13 @@ public class NewAccountRequestBuilder {
                 .password("12345678")
                 .build();
     }
+
+    public static NewAccountRequestDTO build(String phoneNumber) {
+        return NewAccountRequestDTO.builder()
+            .name("John Doe")
+            .email("john.doe@mail.com")
+            .phoneNumber(phoneNumber)
+            .password("12345678")
+            .build();
+    }
 }

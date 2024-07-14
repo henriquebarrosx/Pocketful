@@ -29,7 +29,7 @@ public class AccountService {
             throw new EmailOrPhoneNumberAlreadyExistException(request.getEmail(), request.getPhoneNumber());
         }
 
-        if (!isValidPhoneNumber(request.getPhoneNumber())) {
+        if (Boolean.FALSE.equals(isValidPhoneNumber(request.getPhoneNumber()))) {
             throw new InvalidPhoneNumberException();
         }
 
