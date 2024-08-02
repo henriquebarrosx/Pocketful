@@ -2,7 +2,6 @@ package com.pocketful.service;
 
 import com.pocketful.entity.Account;
 import com.pocketful.web.dto.account.AuthenticatedAccountDTO;
-import com.pocketful.web.dto.account.SignInRequestDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -15,12 +14,12 @@ public class AuthenticationService {
     private final AccountService accountService;
     private final AuthenticationManager authenticationManager;
 
-    public AuthenticatedAccountDTO authenticate(SignInRequestDTO request) {
-        var credentials = new UsernamePasswordAuthenticationToken(request.email(), request.password());
+    public AuthenticatedAccountDTO authenticate(String email, String password) {
+        var credentials = new UsernamePasswordAuthenticationToken(email, password);
         var auth = authenticationManager.authenticate(credentials);
 
         String token = tokenService.generateToken((Account) auth.getPrincipal());
-        Account account = accountService.findByEmail(request.email());
+        Account account = accountService.findByEmail(email);
 
         return this.getAuthenticatedAccountDTO(account, token);
     }

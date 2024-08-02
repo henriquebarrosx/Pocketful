@@ -6,8 +6,8 @@ import com.pocketful.service.AuthenticationService;
 import com.pocketful.service.TokenService;
 import com.pocketful.web.dto.account.AccountIdDTO;
 import com.pocketful.web.dto.account.AuthenticatedAccountDTO;
-import com.pocketful.web.dto.account.NewAccountRequestDTO;
 import com.pocketful.web.dto.account.SignInRequestDTO;
+import com.pocketful.web.dto.account.SignUpRequestDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -28,12 +28,12 @@ public class AuthController {
     @PostMapping("sign-in")
     ResponseEntity<AuthenticatedAccountDTO> signIn(@RequestBody SignInRequestDTO request) {
         log.info("Authenticating account by email - {}", request.email());
-        AuthenticatedAccountDTO account = authenticationService.authenticate(request);
+        AuthenticatedAccountDTO account = authenticationService.authenticate(request.email(), request.password());
         return ResponseEntity.status(HttpStatus.OK).body(account);
     }
 
     @PostMapping("sign-up")
-    ResponseEntity<AccountIdDTO> signUp(@RequestBody NewAccountRequestDTO request) {
+    ResponseEntity<AccountIdDTO> signUp(@RequestBody SignUpRequestDTO request) {
         log.info("Creating account: name - {} | email - {} | phone number - {}", request.getName(), request.getEmail(), request.getPhoneNumber());
         Account account = accountService.create(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(new AccountIdDTO(account.getId()));
