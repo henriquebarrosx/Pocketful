@@ -4,11 +4,12 @@ import com.pocketful.entity.Account;
 import com.pocketful.entity.AccountRole;
 import com.pocketful.exception.Account.AccountEmailAlreadyRegisteredException;
 import com.pocketful.exception.Account.AccountNotFoundException;
+import com.pocketful.exception.Account.InvalidAccountEmailFormatException;
 import com.pocketful.repository.AccountRepository;
-import com.pocketful.web.dto.account.SignUpRequestDTO;
+import com.pocketful.util.EmailValidator;
+import com.pocketful.util.PasswordEncoder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -19,28 +20,25 @@ import java.time.LocalDateTime;
 public class AccountService {
     private final AccountRepository accountRepository;
 
-    public Account create(SignUpRequestDTO request) {
-        Boolean existsAccountByEmailOrPhoneNumber = accountRepository
-                .existsAccountByEmail(request.getEmail());
+    public Account create(String name, String email, String password) {
+        if (Boolean.FALSE.equals(EmailValidator.validate(email))) {
+            throw new InvalidAccountEmailFormatException();
+        }
 
-        if (existsAccountByEmailOrPhoneNumber) {
-            throw new AccountEmailAlreadyRegisteredException(request.getEmail());
+        if (accountRepository.existsByEmail(email)) {
+            throw new AccountEmailAlreadyRegisteredException(email);
         }
 
         return accountRepository.save(
                 Account.builder()
-                        .name(request.getName())
-                        .email(request.getEmail())
-                        .password(encodePassword(request.getPassword()))
+                        .name(name)
+                        .email(email)
+                        .password(PasswordEncoder.encode(password))
                         .role(AccountRole.DEFAULT)
                         .createdAt(LocalDateTime.now())
                         .updatedAt(LocalDateTime.now())
                         .build()
         );
-    }
-
-    private String encodePassword(String password) {
-        return new BCryptPasswordEncoder().encode(password);
     }
 
     public Account findById(Long id) {
@@ -49,7 +47,7 @@ public class AccountService {
     }
 
     public Account findByEmail(String email) {
-        return accountRepository.findAccountByEmail(email)
+        return accountRepository.findByEmail(email)
             .orElseThrow(() -> new AccountNotFoundException(email));
     }
 }

@@ -11,6 +11,7 @@ public class AccountBuilder {
                 .id(1L)
                 .name("John Doe")
                 .email("john.doe@mail.com")
+                .password("LOREMARIE")
                 .role(AccountRole.ADMIN)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())

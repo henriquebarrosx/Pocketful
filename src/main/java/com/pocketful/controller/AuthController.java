@@ -38,7 +38,7 @@ public class AuthController {
     @PostMapping("sign-up")
     ResponseEntity<AccountIdDTO> signUp(@RequestBody SignUpRequestDTO request) {
         log.info("Creating account: name - {} | email - {}", request.getName(), request.getEmail());
-        Account account = accountService.create(request);
+        Account account = accountService.create(request.getName(), request.getEmail(),  request.getPassword());
         AccountIdDTO accountId = new AccountIdDTO(account.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(accountId);
     }

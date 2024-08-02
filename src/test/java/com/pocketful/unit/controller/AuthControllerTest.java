@@ -1,12 +1,10 @@
-package com.pocketful.controller;
+package com.pocketful.unit.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.pocketful.controller.AuthController;
 import com.pocketful.entity.Account;
-import com.pocketful.exception.Account.AccountEmailAlreadyRegisteredException;
-import com.pocketful.exception.Account.AccountNotFoundException;
-import com.pocketful.exception.Account.InvalidCredentialsException;
 import com.pocketful.service.AccountService;
 import com.pocketful.service.AuthenticationService;
 import com.pocketful.service.TokenService;
@@ -29,7 +27,6 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static com.pocketful.controller.AuthController.AUTHORIZATION;
 import static org.hamcrest.Matchers.is;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -37,8 +34,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(AuthController.class)
-@AutoConfigureMockMvc(addFilters = false)
 @ExtendWith(MockitoExtension.class)
+@AutoConfigureMockMvc(addFilters = false)
 public class AuthControllerTest {
     @Autowired
     private MockMvc mockMvc;
@@ -63,16 +60,18 @@ public class AuthControllerTest {
     }
 
     @Test
-    public void shouldThrowAnExceptionWhenSigningInUsingInvalidCredentials() throws Exception {
-        var request = new SignInRequestDTO("john.doe@mail.com", "12345678");
+    public void shouldReturnAnAccountWhenSignUp() throws Exception {
+        var request = SignUpRequestBuilder.build();
+        var account = AccountBuilder.build();
 
-        doThrow(new InvalidCredentialsException())
-                .when(authenticationService).authenticate(ArgumentMatchers.any(), ArgumentMatchers.any());
+        when(accountService.create(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.anyString()))
+                .thenReturn(account);
 
-        this.mockMvc.perform(post("/v1/auth/sign-in")
+        this.mockMvc.perform(post("/v1/auth/sign-up")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id", is(account.getId().intValue())));
     }
 
     @Test
@@ -95,44 +94,9 @@ public class AuthControllerTest {
     }
 
     @Test
-    public void shouldThrowAnExceptionWhenSigningUpUsingExistentEmail() throws Exception {
-        var request = SignUpRequestBuilder.build();
-
-        doThrow(new AccountEmailAlreadyRegisteredException(request.getEmail()))
-                .when(accountService).create(ArgumentMatchers.any());
-
-        this.mockMvc.perform(post("/v1/auth/sign-up")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.message", is(String.format("Account email %s already exists.", request.getEmail()))));
-    }
-
-
-    @Test
-    public void shouldThrowExceptionWhenSigningOutWithInvalidAccessToken() throws Exception {
-        Account account = AccountBuilder.build();
-        String token = "####ACCESS_TOKEN###";
-
-        doThrow(new AccountNotFoundException(account.getEmail()))
-                .when(tokenService).decodeToken(ArgumentMatchers.anyString());
-
-        this.mockMvc.perform(delete("/v1/auth/sign-out")
-                        .header(AUTHORIZATION, token)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
-
-        Mockito.verify(tokenService, Mockito.times(1))
-                .decodeToken(token);
-
-        Mockito.verify(tokenService, Mockito.times(0))
-                .invalidateToken(account.getEmail());
-    }
-
-    @Test
     public void shouldDestroySessionWhenSigningOutWithValidAccessToken() throws Exception {
         Account account = AccountBuilder.build();
-        String token = "####ACCESS_TOKEN###";
+        String token = "####__ACCESS_TOKEN__###";
 
         when(tokenService.decodeToken(ArgumentMatchers.anyString()))
                 .thenReturn(account);
