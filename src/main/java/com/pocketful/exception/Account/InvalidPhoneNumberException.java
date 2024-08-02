@@ -1,4 +1,4 @@
-package com.pocketful.exception;
+package com.pocketful.exception.Account;
 
 public class InvalidPhoneNumberException extends RuntimeException {
     public InvalidPhoneNumberException() {

@@ -1,4 +1,4 @@
-package com.pocketful.exception;
+package com.pocketful.exception.PaymentCategory;
 
 public class PaymentCategoryNotFoundException extends RuntimeException {
     public PaymentCategoryNotFoundException(Long id) {

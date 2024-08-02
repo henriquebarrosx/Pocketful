@@ -1,8 +1,8 @@
 package com.pocketful.service;
 
 import com.pocketful.entity.PaymentFrequency;
-import com.pocketful.exception.InvalidFrequencyTimesException;
-import com.pocketful.exception.PaymentFrequencyNotFoundException;
+import com.pocketful.exception.PaymentFrequency.InvalidFrequencyTimesException;
+import com.pocketful.exception.PaymentFrequency.PaymentFrequencyNotFoundException;
 import com.pocketful.repository.PaymentFrequencyRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;

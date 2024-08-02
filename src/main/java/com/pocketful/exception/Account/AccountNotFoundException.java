@@ -1,4 +1,4 @@
-package com.pocketful.exception;
+package com.pocketful.exception.Account;
 
 public class AccountNotFoundException extends RuntimeException {
     public AccountNotFoundException(Long id) {

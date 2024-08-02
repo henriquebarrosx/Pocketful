@@ -1,4 +1,4 @@
-package com.pocketful.exception;
+package com.pocketful.exception.PaymentFrequency;
 
 public class PaymentFrequencyNotFoundException extends RuntimeException {
     public PaymentFrequencyNotFoundException(Long id) {

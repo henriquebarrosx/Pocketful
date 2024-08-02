@@ -1,4 +1,4 @@
-package com.pocketful.exception;
+package com.pocketful.exception.Account;
 
 public class EmailOrPhoneNumberAlreadyExistException extends RuntimeException {
     public EmailOrPhoneNumberAlreadyExistException(String email, String phoneNumber) {

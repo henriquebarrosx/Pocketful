@@ -1,8 +1,8 @@
 package com.pocketful.service;
 
 import com.pocketful.entity.PaymentCategory;
-import com.pocketful.exception.PaymentCategoryAlreadyExistException;
-import com.pocketful.exception.PaymentCategoryNotFoundException;
+import com.pocketful.exception.PaymentCategory.PaymentCategoryAlreadyExistException;
+import com.pocketful.exception.PaymentCategory.PaymentCategoryNotFoundException;
 import com.pocketful.repository.PaymentCategoryRepository;
 import com.pocketful.web.dto.payment_category.NewPaymentCategoryDTO;
 import lombok.AllArgsConstructor;

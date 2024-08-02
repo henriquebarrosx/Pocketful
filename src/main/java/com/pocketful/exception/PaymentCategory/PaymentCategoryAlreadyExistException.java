@@ -1,4 +1,4 @@
-package com.pocketful.exception;
+package com.pocketful.exception.PaymentCategory;
 
 public class PaymentCategoryAlreadyExistException extends RuntimeException {
     public PaymentCategoryAlreadyExistException(String name) {
