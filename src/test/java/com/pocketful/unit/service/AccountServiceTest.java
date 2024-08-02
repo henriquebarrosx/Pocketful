@@ -32,9 +32,10 @@ public class AccountServiceTest {
         String email = "john.doe";
         String password = "00000000";
 
-        Exception exception = Assertions.assertThrows(InvalidAccountEmailFormatException.class, () -> {
-            accountService.create(name, email, password);
-        });
+        Exception exception = Assertions.assertThrows(
+                InvalidAccountEmailFormatException.class,
+                () -> accountService.create(name, email, password)
+        );
 
         Assertions.assertEquals("Invalid email format", exception.getMessage());
     }
@@ -48,9 +49,10 @@ public class AccountServiceTest {
         Mockito.when(accountRepository.existsByEmail(ArgumentMatchers.anyString()))
                 .thenReturn(true);
 
-        Exception exception = Assertions.assertThrows(AccountEmailAlreadyRegisteredException.class, () -> {
-            accountService.create(name, email, password);
-        });
+        Exception exception = Assertions.assertThrows(
+                AccountEmailAlreadyRegisteredException.class,
+                () -> accountService.create(name, email, password)
+        );
 
         Assertions.assertEquals(String.format("Account email %s already exists.", email), exception.getMessage());
     }
@@ -76,9 +78,10 @@ public class AccountServiceTest {
         Mockito.when(accountRepository.findById(ArgumentMatchers.anyLong()))
                 .thenReturn(Optional.empty());
 
-        Exception exception = Assertions.assertThrows(AccountNotFoundException.class, () -> {
-            accountService.findById(id);
-        });
+        Exception exception = Assertions.assertThrows(
+                AccountNotFoundException.class,
+                () -> accountService.findById(id)
+        );
 
         Assertions.assertEquals(String.format("Account by id %s not found", id), exception.getMessage());
     }
@@ -101,9 +104,10 @@ public class AccountServiceTest {
         Mockito.when(accountRepository.findByEmail(ArgumentMatchers.anyString()))
                 .thenReturn(Optional.empty());
 
-        Exception exception = Assertions.assertThrows(AccountNotFoundException.class, () -> {
-            accountService.findByEmail(email);
-        });
+        Exception exception = Assertions.assertThrows(
+                AccountNotFoundException.class,
+                () -> accountService.findByEmail(email)
+        );
 
         Assertions.assertEquals(String.format("Account by email %s not found", email), exception.getMessage());
     }
