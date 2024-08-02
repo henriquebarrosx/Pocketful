@@ -27,7 +27,7 @@ public class SecurityFilterConfig extends OncePerRequestFilter {
         if (Objects.nonNull(token)) {
             Account account = tokenService.decodeToken(token);
 
-            if (tokenService.validateToken(account.getEmail(), token)) {
+            if (Objects.nonNull(account) && tokenService.validateToken(account.getEmail(), token)) {
                 var authentication = new UsernamePasswordAuthenticationToken(account, null, account.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } else {
