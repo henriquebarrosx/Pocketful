@@ -36,9 +36,6 @@ public class Account implements UserDetails {
     @Column(nullable = false)
     private AccountRole role;
 
-    @Column(nullable = false, unique = true, name = "phone_number")
-    private String phoneNumber;
-
     @CreationTimestamp
     @Column(nullable = false)
     private LocalDateTime createdAt;

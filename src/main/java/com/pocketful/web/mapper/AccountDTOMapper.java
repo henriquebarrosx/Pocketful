@@ -14,7 +14,6 @@ public class AccountDTOMapper implements Function<Account, AccountDTO> {
                 .id(account.getId())
                 .name(account.getName())
                 .email(account.getEmail())
-                .phoneNumber(account.getPhoneNumber())
                 .createdAt(account.getCreatedAt())
                 .updatedAt(account.getUpdatedAt())
                 .build();

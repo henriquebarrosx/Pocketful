@@ -21,9 +21,12 @@ import java.util.Map;
 @RequestMapping("v1/auth")
 @RestController
 public class AuthController {
+
     private final TokenService tokenService;
     private final AccountService accountService;
     private final AuthenticationService authenticationService;
+
+    public static final String AUTHORIZATION = "authorization";
 
     @PostMapping("sign-in")
     ResponseEntity<AuthenticatedAccountDTO> signIn(@RequestBody SignInRequestDTO request) {
@@ -34,14 +37,15 @@ public class AuthController {
 
     @PostMapping("sign-up")
     ResponseEntity<AccountIdDTO> signUp(@RequestBody SignUpRequestDTO request) {
-        log.info("Creating account: name - {} | email - {} | phone number - {}", request.getName(), request.getEmail(), request.getPhoneNumber());
+        log.info("Creating account: name - {} | email - {}", request.getName(), request.getEmail());
         Account account = accountService.create(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(new AccountIdDTO(account.getId()));
+        AccountIdDTO accountId = new AccountIdDTO(account.getId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(accountId);
     }
 
     @DeleteMapping("sign-out")
     ResponseEntity<Void> signOut(@RequestHeader Map<String, String> headers) {
-        Account account = tokenService.decodeToken(headers.get("authorization"));
+        Account account = tokenService.decodeToken(headers.get(AUTHORIZATION));
         log.info("Signing out account by email - {}", account.getEmail());
         tokenService.invalidateToken(account.getEmail());
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();

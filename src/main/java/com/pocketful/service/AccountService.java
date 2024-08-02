@@ -2,9 +2,8 @@ package com.pocketful.service;
 
 import com.pocketful.entity.Account;
 import com.pocketful.entity.AccountRole;
+import com.pocketful.exception.Account.AccountEmailAlreadyRegisteredException;
 import com.pocketful.exception.Account.AccountNotFoundException;
-import com.pocketful.exception.Account.EmailOrPhoneNumberAlreadyExistException;
-import com.pocketful.exception.Account.InvalidPhoneNumberException;
 import com.pocketful.repository.AccountRepository;
 import com.pocketful.web.dto.account.SignUpRequestDTO;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +12,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.regex.Pattern;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -23,21 +21,16 @@ public class AccountService {
 
     public Account create(SignUpRequestDTO request) {
         Boolean existsAccountByEmailOrPhoneNumber = accountRepository
-                .existsAccountByEmailOrPhoneNumber(request.getEmail(), request.getPhoneNumber());
+                .existsAccountByEmail(request.getEmail());
 
         if (existsAccountByEmailOrPhoneNumber) {
-            throw new EmailOrPhoneNumberAlreadyExistException(request.getEmail(), request.getPhoneNumber());
-        }
-
-        if (!isValidPhoneNumber(request.getPhoneNumber())) {
-            throw new InvalidPhoneNumberException();
+            throw new AccountEmailAlreadyRegisteredException(request.getEmail());
         }
 
         return accountRepository.save(
                 Account.builder()
                         .name(request.getName())
                         .email(request.getEmail())
-                        .phoneNumber(request.getPhoneNumber())
                         .password(encodePassword(request.getPassword()))
                         .role(AccountRole.DEFAULT)
                         .createdAt(LocalDateTime.now())
@@ -58,10 +51,5 @@ public class AccountService {
     public Account findByEmail(String email) {
         return accountRepository.findAccountByEmail(email)
             .orElseThrow(() -> new AccountNotFoundException(email));
-    }
-
-    boolean isValidPhoneNumber(String phoneNumber) {
-        Pattern pattern = Pattern.compile("^\\+55(\\d{11})$");
-        return pattern.matcher(phoneNumber).matches();
     }
 }

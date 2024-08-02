@@ -1,9 +1,8 @@
 package com.pocketful.exception;
 
+import com.pocketful.exception.Account.AccountEmailAlreadyRegisteredException;
 import com.pocketful.exception.Account.AccountNotFoundException;
-import com.pocketful.exception.Account.EmailOrPhoneNumberAlreadyExistException;
 import com.pocketful.exception.Account.InvalidCredentialsException;
-import com.pocketful.exception.Account.InvalidPhoneNumberException;
 import com.pocketful.exception.Payment.InvalidPaymentAmountException;
 import com.pocketful.exception.Payment.PaymentNotFoundException;
 import com.pocketful.exception.PaymentCategory.PaymentCategoryAlreadyExistException;
@@ -20,7 +19,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
-    @ExceptionHandler(EmailOrPhoneNumberAlreadyExistException.class)
+    @ExceptionHandler(AccountEmailAlreadyRegisteredException.class)
     public ResponseEntity<ExceptionDTO> handleEmailOrPhoneNumberAlreadyExistException(Exception exception) {
         ExceptionDTO exceptionDTO = new ExceptionDTO(exception.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(exceptionDTO);
@@ -32,11 +31,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(exceptionDTO);
     }
 
-    @ExceptionHandler(InvalidPhoneNumberException.class)
-    public ResponseEntity<ExceptionDTO> handleInvalidPhoneNumberException(Exception exception) {
-        ExceptionDTO exceptionDTO = new ExceptionDTO(exception.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exceptionDTO);
-    }
 
     @ExceptionHandler(InvalidPaymentAmountException.class)
     public ResponseEntity<ExceptionDTO> handleInvalidPaymentAmountException(Exception exception) {

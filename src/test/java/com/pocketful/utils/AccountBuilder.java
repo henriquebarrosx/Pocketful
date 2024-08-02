@@ -11,7 +11,6 @@ public class AccountBuilder {
                 .id(1L)
                 .name("John Doe")
                 .email("john.doe@mail.com")
-                .phoneNumber("+5582988779900")
                 .role(AccountRole.ADMIN)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
