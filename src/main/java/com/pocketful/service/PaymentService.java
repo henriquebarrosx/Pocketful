@@ -8,7 +8,7 @@ import com.pocketful.exception.Payment.PaymentNotFoundException;
 import com.pocketful.producer.PaymentEditionQueueProducer;
 import com.pocketful.producer.PaymentGenerationQueueProducer;
 import com.pocketful.repository.PaymentRepository;
-import com.pocketful.web.dto.payment.NewPaymentDTO;
+import com.pocketful.web.dto.payment.PaymentCreationRequestDTO;
 import com.pocketful.web.dto.payment.PaymentEditionRequestDTO;
 import com.pocketful.web.dto.payment.PaymentGenerationPayloadDTO;
 import com.pocketful.web.view.payment.PaymentModel;
@@ -53,7 +53,7 @@ public class PaymentService {
             .orElseThrow(() -> new PaymentNotFoundException(id));
     }
 
-    public Payment create(Account account, NewPaymentDTO paymentParams) {
+    public Payment create(Account account, PaymentCreationRequestDTO paymentParams) {
         PaymentCategory paymentCategory = paymentCategoryService
             .findById(paymentParams.getPaymentCategoryId());
 
@@ -73,7 +73,7 @@ public class PaymentService {
         return payment;
     }
 
-    private Payment getPaymentBuilder(Account account, NewPaymentDTO paymentParams, PaymentCategory paymentCategory, PaymentFrequency paymentFrequency) {
+    private Payment getPaymentBuilder(Account account, PaymentCreationRequestDTO paymentParams, PaymentCategory paymentCategory, PaymentFrequency paymentFrequency) {
         return Payment.builder()
                 .account(account)
                 .paymentCategory(paymentCategory)

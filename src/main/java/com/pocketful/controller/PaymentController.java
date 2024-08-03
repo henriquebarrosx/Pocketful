@@ -1,19 +1,19 @@
 package com.pocketful.controller;
 
 import com.pocketful.entity.Account;
+import com.pocketful.entity.Payment;
 import com.pocketful.service.PaymentService;
 import com.pocketful.util.SessionContext;
+import com.pocketful.web.dto.payment.PaymentCreationRequestDTO;
 import com.pocketful.web.dto.payment.PaymentDTO;
+import com.pocketful.web.dto.payment.PaymentIdDTO;
 import com.pocketful.web.mapper.PaymentDTOMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -42,17 +42,13 @@ public class PaymentController {
         return ResponseEntity.status(HttpStatus.OK).body(payments);
     }
 
-//    @PostMapping
-//    public ResponseEntity<PaymentIdDTO> create(
-//        @RequestBody NewPaymentDTO request,
-//        @RequestHeader Map<String, String> headers
-//    ) {
-//        Account account = tokenService.decodeToken(headers.get("authorization"));
-//        log.info("Creating payment: account id - {} | description - {} | amount - {} | category id - {}", account.getId(), request.getDescription(), request.getAmount(), request.getPaymentCategoryId());
-//        Payment payment = paymentService.create(account, request);
-//
-//        return ResponseEntity.status(HttpStatus.CREATED).body(new PaymentIdDTO(payment.getId()));
-//    }
+    @PostMapping
+    public ResponseEntity<PaymentIdDTO> create(@RequestBody PaymentCreationRequestDTO request) {
+        Account account = SessionContext.get();
+        log.info("Creating payment: account id - {} | description - {} | amount - {} | category id - {}", account.getId(), request.getDescription(), request.getAmount(), request.getPaymentCategoryId());
+        Payment payment = paymentService.create(account, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(new PaymentIdDTO(payment.getId()));
+    }
 //
 //    @PutMapping("{id}")
 //    public ResponseEntity<Void> update(

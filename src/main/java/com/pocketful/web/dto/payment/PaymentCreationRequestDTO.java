@@ -10,7 +10,7 @@ import java.time.LocalDate;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class NewPaymentDTO {
+public class PaymentCreationRequestDTO {
     private BigDecimal amount;
     private String description;
     private Boolean payed;
