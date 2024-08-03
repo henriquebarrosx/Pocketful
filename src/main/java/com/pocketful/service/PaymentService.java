@@ -38,13 +38,10 @@ public class PaymentService {
     private final PaymentGenerationQueueProducer paymentGenerationQueueProducer;
 
     public List<Payment> findBy(Account account, LocalDate startAt, LocalDate endAt) {
-        LocalDate MIN_DATE = LocalDate.of(1970, 1, 1);
-        LocalDate MAX_DATE = LocalDate.of(9999, 1, 1);
-
         return paymentRepository.findAllByAccountAndDeadlineAtBetweenOrderByCreatedAtAsc(
             account,
-            Objects.isNull(startAt) ? MIN_DATE : startAt,
-            Objects.isNull(endAt) ? MAX_DATE : endAt
+            Objects.isNull(startAt) ? LocalDate.MIN : startAt,
+            Objects.isNull(endAt) ? LocalDate.MAX : endAt
         );
     }
 
