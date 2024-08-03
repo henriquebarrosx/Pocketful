@@ -7,7 +7,7 @@ import com.pocketful.controller.AuthController;
 import com.pocketful.entity.Account;
 import com.pocketful.service.AccountService;
 import com.pocketful.service.AuthenticationService;
-import com.pocketful.service.TokenService;
+import com.pocketful.util.JsonWebToken;
 import com.pocketful.utils.AccountBuilder;
 import com.pocketful.utils.SignInResponseBuilder;
 import com.pocketful.utils.SignUpRequestBuilder;
@@ -48,9 +48,6 @@ public class AuthControllerTest {
 
     @MockBean
     private AccountService accountService;
-
-    @MockBean
-    private TokenService tokenService;
 
     @BeforeEach
     public void setup() {
@@ -96,20 +93,14 @@ public class AuthControllerTest {
     @Test
     public void shouldDestroySessionWhenSigningOutWithValidAccessToken() throws Exception {
         Account account = AccountBuilder.build();
-        String token = "####__ACCESS_TOKEN__###";
+        String token = JsonWebToken.generate(account.getEmail());
 
-        when(tokenService.decodeToken(ArgumentMatchers.anyString()))
-                .thenReturn(account);
+        Mockito.when(accountService.findByEmail(ArgumentMatchers.anyString()))
+            .thenReturn(account);
 
         this.mockMvc.perform(delete("/v1/auth/sign-out")
                         .header(AUTHORIZATION, token)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
-
-        Mockito.verify(tokenService, Mockito.times(1))
-                .decodeToken(token);
-
-        Mockito.verify(tokenService, Mockito.times(1))
-                .invalidateToken(account.getEmail());
     }
 }

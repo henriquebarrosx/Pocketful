@@ -3,7 +3,7 @@ package com.pocketful.controller;
 import com.pocketful.entity.Account;
 import com.pocketful.service.AccountService;
 import com.pocketful.service.AuthenticationService;
-import com.pocketful.service.TokenService;
+import com.pocketful.util.JsonWebToken;
 import com.pocketful.web.dto.account.AccountIdDTO;
 import com.pocketful.web.dto.account.AuthenticatedAccountDTO;
 import com.pocketful.web.dto.account.SignInRequestDTO;
@@ -22,7 +22,6 @@ import java.util.Map;
 @RestController
 public class AuthController {
 
-    private final TokenService tokenService;
     private final AccountService accountService;
     private final AuthenticationService authenticationService;
 
@@ -45,9 +44,9 @@ public class AuthController {
 
     @DeleteMapping("sign-out")
     ResponseEntity<Void> signOut(@RequestHeader Map<String, String> headers) {
-        Account account = tokenService.decodeToken(headers.get(AUTHORIZATION));
-        log.info("Signing out account by email - {}", account.getEmail());
-        tokenService.invalidateToken(account.getEmail());
+        String accountEmail = JsonWebToken.decode(headers.get(AUTHORIZATION));
+        log.info("Signing out account by email - {}", accountEmail);
+        JsonWebToken.invalidate(accountEmail);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

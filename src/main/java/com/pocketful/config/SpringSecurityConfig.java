@@ -1,5 +1,6 @@
 package com.pocketful.config;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,19 +24,24 @@ public class SpringSecurityConfig {
     @Bean
     SecurityFilterChain getFilterChain(HttpSecurity http) throws Exception {
         return http
-                .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(session -> {
-                    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-                })
-                .authorizeHttpRequests(authorize -> {
-                    authorize
-                            .requestMatchers("/v1/auth/sign-in").permitAll()
-                            .requestMatchers("/v1/auth/sign-up").permitAll()
-                            .requestMatchers("/v1/payments/categories/**").hasRole("ADMIN")
-                            .anyRequest().authenticated();
-                })
-                .addFilterBefore(securityFilterConfig, UsernamePasswordAuthenticationFilter.class)
-                .build();
+            .csrf(AbstractHttpConfigurer::disable)
+            .sessionManagement(session -> {
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+            })
+            .authorizeHttpRequests(authorize -> {
+                authorize
+                    .requestMatchers("/v1/auth/sign-in").permitAll()
+                    .requestMatchers("/v1/auth/sign-up").permitAll()
+                    .requestMatchers("/v1/payments/categories/**").hasRole("ADMIN")
+                    .anyRequest().authenticated();
+            })
+            .exceptionHandling((exception) -> {
+                exception.authenticationEntryPoint((request, response, authException) -> {
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+                });
+            })
+            .addFilterBefore(securityFilterConfig, UsernamePasswordAuthenticationFilter.class)
+            .build();
     }
 
     @Bean

@@ -1,12 +1,14 @@
 package com.pocketful.config;
 
 import com.pocketful.entity.Account;
-import com.pocketful.service.TokenService;
+import com.pocketful.service.AccountService;
+import com.pocketful.util.JsonWebToken;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.AllArgsConstructor;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -14,23 +16,32 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Objects;
+import java.util.Optional;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Component
 public class SecurityFilterConfig extends OncePerRequestFilter {
-    private final TokenService tokenService;
+    private final AccountService accountService;
+
+    public static final String AUTHORIZATION = "authorization";
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        var token = this.recoverToken(request);
+    protected void doFilterInternal(@NonNull HttpServletRequest request,
+                                    @NonNull HttpServletResponse response,
+                                    @NonNull FilterChain filterChain) throws ServletException, IOException
+    {
+        Optional<String> token = this.getTokenFromHeaders(request);
 
-        if (Objects.nonNull(token)) {
-            Account account = tokenService.decodeToken(token);
+        if (token.isPresent()) {
+            String sessionEmail = JsonWebToken.decode(token.get());
 
-            if (Objects.nonNull(account) && tokenService.validateToken(account.getEmail(), token)) {
+            if (JsonWebToken.validate(sessionEmail, token.get())) {
+                Account account = accountService.findByEmail(sessionEmail);
                 var authentication = new UsernamePasswordAuthenticationToken(account, null, account.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-            } else {
+            }
+
+            else {
                 logger.error("Invalid provided access token");
             }
         }
@@ -38,9 +49,9 @@ public class SecurityFilterConfig extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private String recoverToken(HttpServletRequest request) {
-        var authHeader = request.getHeader("authorization");
-        if (Objects.isNull(authHeader)) return null;
-        return authHeader.replace("Bearer ", "");
+    private Optional<String> getTokenFromHeaders(HttpServletRequest request) {
+        var authHeader = request.getHeader(AUTHORIZATION);
+        if (Objects.isNull(authHeader)) return Optional.empty();
+        return Optional.of(JsonWebToken.sanitize(authHeader));
     }
 }
