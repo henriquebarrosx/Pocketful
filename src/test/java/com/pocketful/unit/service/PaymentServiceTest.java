@@ -30,12 +30,8 @@ public class PaymentServiceTest {
     @Test
     void shouldReturnAllPaymentsByAccountWhenStartAndEndAtIsNotProvided() {
         Account account = AccountBuilder.build();
-        Account accountArgMatcher = ArgumentMatchers.any(Account.class);
-        LocalDate startAtArgMatcher = ArgumentMatchers.any(LocalDate.class);
-        LocalDate endAtArgMatcher = ArgumentMatchers.any(LocalDate.class);
 
-        Mockito
-            .when(paymentService.findBy(accountArgMatcher, startAtArgMatcher, endAtArgMatcher))
+        Mockito.when(paymentService.findBy(ArgumentMatchers.any(Account.class), ArgumentMatchers.any(LocalDate.class), ArgumentMatchers.any(LocalDate.class)))
             .thenReturn(Collections.emptyList());
 
         /////////////
@@ -44,8 +40,7 @@ public class PaymentServiceTest {
 
         /////////////
 
-        Mockito
-            .verify(paymentRepository, Mockito.times(1))
+        Mockito.verify(paymentRepository, Mockito.times(1))
             .findAllByAccountAndDeadlineAtBetweenOrderByCreatedAtAsc(account, LocalDate.MIN, LocalDate.MAX);
 
         Assertions.assertEquals(payments.size(), 0);
@@ -54,12 +49,8 @@ public class PaymentServiceTest {
     @Test
     void shouldReturnAllPaymentsByAccountBetweenTwoDatesWhenStartAndEndAtBeenProvided() {
         Account account = AccountBuilder.build();
-        Account accountArgMatcher = ArgumentMatchers.any(Account.class);
-        LocalDate startAtArgMatcher = ArgumentMatchers.any(LocalDate.class);
-        LocalDate endAtArgMatcher = ArgumentMatchers.any(LocalDate.class);
 
-        Mockito
-            .when(paymentService.findBy(accountArgMatcher, startAtArgMatcher, endAtArgMatcher))
+        Mockito.when(paymentService.findBy(ArgumentMatchers.any(Account.class), ArgumentMatchers.any(LocalDate.class), ArgumentMatchers.any(LocalDate.class)))
             .thenReturn(Collections.emptyList());
 
         /////////////
@@ -70,8 +61,7 @@ public class PaymentServiceTest {
 
         /////////////
 
-        Mockito
-            .verify(paymentRepository, Mockito.times(1))
+        Mockito.verify(paymentRepository, Mockito.times(1))
             .findAllByAccountAndDeadlineAtBetweenOrderByCreatedAtAsc(account, startAt, endAt);
 
         Assertions.assertEquals(payments.size(), 0);
