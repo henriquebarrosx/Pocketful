@@ -42,7 +42,8 @@ public class PaymentFrequencyService {
     @Transactional
     public void deleteById(Long id) {
         log.info("Deleting payment frequency by id: {}", id);
-        paymentFrequencyRepository.deleteById(id);
+        PaymentFrequency frequency = findById(id);
+        paymentFrequencyRepository.deleteById(frequency.getId());
     }
 
     private static PaymentFrequency getPaymentFrequencyBuilder(int times) {
