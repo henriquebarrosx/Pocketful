@@ -6,7 +6,8 @@ public abstract class PaymentBuilder {
 
     public static Payment build() {
         return Payment.builder()
-            .build();
+                .id(1L)
+                .build();
     }
 
 }
