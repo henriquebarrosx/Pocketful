@@ -25,7 +25,7 @@ public class PaymentCategoryController {
         log.info("Getting payments categories");
 
         List<PaymentCategoryDTO> categories = paymentCategoriesService.findAll().stream()
-                .map((category) -> PaymentCategoryDTOMapper.apply(category))
+                .map(PaymentCategoryDTOMapper::apply)
                 .toList();
 
         return ResponseEntity.status(HttpStatus.OK).body(categories);

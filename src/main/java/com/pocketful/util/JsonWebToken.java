@@ -20,13 +20,11 @@ public abstract class JsonWebToken {
     public static String generate(String subject) {
         Algorithm algorithm = Algorithm.HMAC256(secret);
 
-        String token = JWT.create()
+        return JWT.create()
             .withIssuer(ISSUER)
             .withIssuedAt(getIssuedAt())
             .withSubject(subject)
             .sign(algorithm);
-
-        return token;
     }
 
     public static String decode(String token) {

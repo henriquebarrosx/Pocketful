@@ -11,7 +11,7 @@ import java.util.Objects;
 @Slf4j
 @Service
 public class SessionManagerService {
-    private static final Map<String, String> inMemorySessions = new HashMap<>();
+    private final Map<String, String> inMemorySessions = new HashMap<>();
 
     public String init(String subject) {
         String token = JsonWebToken.generate(subject);
@@ -19,12 +19,12 @@ public class SessionManagerService {
         return token;
     }
 
-    public static Boolean validate(String subject, String token) {
+    public Boolean validate(String subject, String token) {
         String accessToken = inMemorySessions.get(subject);
         return Objects.nonNull(accessToken) && accessToken.equals(token);
     }
 
-    public static void invalidate(String subject) {
+    public void invalidate(String subject) {
         inMemorySessions.remove(subject);
     }
 }
