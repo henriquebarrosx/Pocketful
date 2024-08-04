@@ -3,7 +3,8 @@ package com.pocketful.controller;
 import com.pocketful.entity.Account;
 import com.pocketful.service.AccountService;
 import com.pocketful.service.AuthenticationService;
-import com.pocketful.util.JsonWebToken;
+import com.pocketful.service.SessionManagerService;
+import com.pocketful.util.SessionContext;
 import com.pocketful.web.dto.account.AccountIdDTO;
 import com.pocketful.web.dto.account.AuthenticatedAccountDTO;
 import com.pocketful.web.dto.account.SignInRequestDTO;
@@ -14,8 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-
 @Slf4j
 @RequiredArgsConstructor
 @RequestMapping("v1/auth")
@@ -23,9 +22,8 @@ import java.util.Map;
 public class AuthController {
 
     private final AccountService accountService;
+    private final SessionManagerService sessionManagerService;
     private final AuthenticationService authenticationService;
-
-    public static final String AUTHORIZATION = "authorization";
 
     @PostMapping("sign-in")
     ResponseEntity<AuthenticatedAccountDTO> signIn(@RequestBody SignInRequestDTO request) {
@@ -43,10 +41,10 @@ public class AuthController {
     }
 
     @DeleteMapping("sign-out")
-    ResponseEntity<Void> signOut(@RequestHeader Map<String, String> headers) {
-        String accountEmail = JsonWebToken.decode(headers.get(AUTHORIZATION));
-        log.info("Signing out account by email - {}", accountEmail);
-        JsonWebToken.invalidate(accountEmail);
+    ResponseEntity<Void> signOut() {
+        Account account = SessionContext.get();
+        log.info("Signing out account by email - {}", account.getEmail());
+        sessionManagerService.invalidate(account.getEmail());
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

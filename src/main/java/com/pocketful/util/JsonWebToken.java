@@ -8,28 +8,24 @@ import org.springframework.beans.factory.annotation.Value;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
 
 @Slf4j
 public abstract class JsonWebToken {
-    public static final String ISSUER = "auth0";
-    private static final Map<String, String> tokensBySubject = new HashMap<>();
 
     @Value("${security.token}")
     private static String secret = "DEFAULT_SECRET";
 
-    public static String generate(String param) {
+    public static final String ISSUER = "auth0";
+
+    public static String generate(String subject) {
         Algorithm algorithm = Algorithm.HMAC256(secret);
 
         String token = JWT.create()
             .withIssuer(ISSUER)
             .withIssuedAt(getIssuedAt())
-            .withSubject(param)
+            .withSubject(subject)
             .sign(algorithm);
 
-        tokensBySubject.put(param, token);
         return token;
     }
 
@@ -41,15 +37,6 @@ public abstract class JsonWebToken {
             .build()
             .verify(sanitize(token))
             .getSubject();
-    }
-
-    public static Boolean validate(String subject, String token) {
-        String accessToken = tokensBySubject.get(subject);
-        return Objects.nonNull(accessToken) && accessToken.equals(token);
-    }
-
-    public static void invalidate(String subject) {
-        tokensBySubject.put(subject, "");
     }
 
     public static String sanitize(String token) {

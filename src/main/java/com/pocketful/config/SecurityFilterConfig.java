@@ -2,6 +2,7 @@ package com.pocketful.config;
 
 import com.pocketful.entity.Account;
 import com.pocketful.service.AccountService;
+import com.pocketful.service.SessionManagerService;
 import com.pocketful.util.JsonWebToken;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -22,6 +23,7 @@ import java.util.Optional;
 @Component
 public class SecurityFilterConfig extends OncePerRequestFilter {
     private final AccountService accountService;
+    private final SessionManagerService sessionManagerService;
 
     public static final String AUTHORIZATION = "authorization";
 
@@ -35,7 +37,7 @@ public class SecurityFilterConfig extends OncePerRequestFilter {
         if (token.isPresent()) {
             String sessionEmail = JsonWebToken.decode(token.get());
 
-            if (JsonWebToken.validate(sessionEmail, token.get())) {
+            if (sessionManagerService.validate(sessionEmail, token.get())) {
                 Account account = accountService.findByEmail(sessionEmail);
                 var authentication = new UsernamePasswordAuthenticationToken(account, null, account.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authentication);
