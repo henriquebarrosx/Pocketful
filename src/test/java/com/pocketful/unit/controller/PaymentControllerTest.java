@@ -1,22 +1,18 @@
 package com.pocketful.unit.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pocketful.config.SpringSecurityConfig;
+import com.pocketful.config.SecurityConfig;
 import com.pocketful.controller.PaymentController;
 import com.pocketful.entity.Account;
 import com.pocketful.enums.PaymentSelectionOption;
 import com.pocketful.service.AccountService;
 import com.pocketful.service.PaymentService;
+import com.pocketful.service.SessionManagerService;
 import com.pocketful.util.JsonWebToken;
-import com.pocketful.utils.AccountBuilder;
-import com.pocketful.utils.PaymentBuilder;
-import com.pocketful.utils.PaymentCreationRequestBuilder;
-import com.pocketful.utils.PaymentEditionRequestBuilder;
+import com.pocketful.utils.*;
 import com.pocketful.web.dto.payment.PaymentCreationRequestDTO;
 import com.pocketful.web.dto.payment.PaymentEditionRequestDTO;
 import com.pocketful.web.mapper.PaymentDTOMapper;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
@@ -34,7 +30,7 @@ import java.util.Collections;
 
 import static com.pocketful.config.SecurityFilterConfig.AUTHORIZATION;
 
-@Import(SpringSecurityConfig.class)
+@Import(SecurityConfig.class)
 @WebMvcTest(PaymentController.class)
 public class PaymentControllerTest {
 
@@ -53,128 +49,134 @@ public class PaymentControllerTest {
     @MockBean
     private AccountService accountService;
 
-    private String token;
-
-    private Account account;
-
-    @BeforeEach
-    void beforeEach() {
-        account = AccountBuilder.build();
-        token = JsonWebToken.generate(account.getEmail());
-    }
-
-    @AfterEach
-    void afterEach() {
-        JsonWebToken.invalidate(account.getEmail());
-    }
+    @MockBean
+    private SessionManagerService sessionManagerService;
 
     @Test
     public void shouldThrowExceptionWhenGettingPaymentsWithoutBeenSignedIn() throws Exception {
+        String token = JsonWebToken.generate("john.doe@mail.com");
+
         mockmvc.perform(MockMvcRequestBuilders.get("/v1/payments")
-                .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(MockMvcResultMatchers.status().isUnauthorized());
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(AUTHORIZATION, token))
+                .andExpect(MockMvcResultMatchers.status().isUnauthorized());
     }
 
     @Test
     public void shouldReturnPaymentsFromSignedAccountWhenGettingPaymentsBeenSignedIn() throws Exception {
+        Account account = AccountBuilder.build();
+        String token = SessionBuilder.build(account);
+
         Mockito.when(accountService.findByEmail(ArgumentMatchers.anyString()))
-            .thenReturn(account);
+                .thenReturn(account);
 
         Mockito.when(paymentService.findBy(ArgumentMatchers.any(Account.class), ArgumentMatchers.any(LocalDate.class), ArgumentMatchers.any(LocalDate.class)))
-            .thenReturn(Collections.emptyList());
+                .thenReturn(Collections.emptyList());
 
         mockmvc.perform(MockMvcRequestBuilders.get("/v1/payments")
-                .contentType(MediaType.APPLICATION_JSON)
-                .header(AUTHORIZATION, token))
-            .andExpect(MockMvcResultMatchers.status().isOk());
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(AUTHORIZATION, token))
+                .andExpect(MockMvcResultMatchers.status().isOk());
     }
 
     @Test
     public void shouldThrowExceptionWhenCreatingPaymentWithoutBeenSignedIn() throws Exception {
+        String token = JsonWebToken.generate("john.doe@mail.com");
         var request = PaymentCreationRequestBuilder.build();
 
         mockmvc.perform(MockMvcRequestBuilders.post("/v1/payments")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-            .andExpect(MockMvcResultMatchers.status().isUnauthorized());
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(AUTHORIZATION, token)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(MockMvcResultMatchers.status().isUnauthorized());
     }
 
     @Test
     public void shouldReturnPaymentsFromSignedAccountWhenCreatingPaymentBeenSignedIn() throws Exception {
+        Account account = AccountBuilder.build();
+        String token = SessionBuilder.build(account);
         var request = PaymentCreationRequestBuilder.build();
 
         Mockito.when(accountService.findByEmail(ArgumentMatchers.anyString()))
-            .thenReturn(account);
+                .thenReturn(account);
 
         Mockito.when(paymentService.create(ArgumentMatchers.any(Account.class), ArgumentMatchers.any(PaymentCreationRequestDTO.class)))
-            .thenReturn(PaymentBuilder.build());
+                .thenReturn(PaymentBuilder.build());
 
         mockmvc.perform(MockMvcRequestBuilders.post("/v1/payments")
-                .contentType(MediaType.APPLICATION_JSON)
-                .header(AUTHORIZATION, token)
-                .content(objectMapper.writeValueAsString(request)))
-            .andExpect(MockMvcResultMatchers.status().isCreated());
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(AUTHORIZATION, token)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(MockMvcResultMatchers.status().isCreated());
     }
 
     @Test
     public void shouldThrowExceptionWhenUpdatingPaymentWithoutBeenSignedIn() throws Exception {
+        String token = JsonWebToken.generate("john.doe@mail.com");
         var request = PaymentEditionRequestBuilder.build();
 
         mockmvc.perform(MockMvcRequestBuilders.put("/v1/payments/1")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-            .andExpect(MockMvcResultMatchers.status().isUnauthorized());
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(AUTHORIZATION, token)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(MockMvcResultMatchers.status().isUnauthorized());
     }
 
     @Test
     public void shouldReturnPaymentsFromSignedAccountWhenUpdatingPaymentBeenSignedIn() throws Exception {
+        Account account = AccountBuilder.build();
+        String token = SessionBuilder.build(account);
         var request = PaymentEditionRequestBuilder.build();
 
         Mockito.when(accountService.findByEmail(ArgumentMatchers.anyString()))
-            .thenReturn(account);
+                .thenReturn(account);
 
         Mockito.doNothing().when(paymentService)
-            .update(
-                ArgumentMatchers.any(Account.class),
-                ArgumentMatchers.anyLong(),
-                ArgumentMatchers.any(PaymentEditionRequestDTO.class)
-            );
+                .update(
+                        ArgumentMatchers.any(Account.class),
+                        ArgumentMatchers.anyLong(),
+                        ArgumentMatchers.any(PaymentEditionRequestDTO.class)
+                );
 
         mockmvc.perform(MockMvcRequestBuilders.put("/v1/payments/1")
-                .contentType(MediaType.APPLICATION_JSON)
-                .header(AUTHORIZATION, token)
-                .content(objectMapper.writeValueAsString(request)))
-            .andExpect(MockMvcResultMatchers.status().isNoContent());
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(AUTHORIZATION, token)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(MockMvcResultMatchers.status().isNoContent());
     }
 
     @Test
     public void shouldThrowExceptionWhenDeletingPaymentWithoutBeenSignedIn() throws Exception {
+        String token = JsonWebToken.generate("john.doe@mail.com");
         var request = PaymentEditionRequestBuilder.build();
 
         mockmvc.perform(MockMvcRequestBuilders.delete("/v1/payments/1")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-            .andExpect(MockMvcResultMatchers.status().isUnauthorized());
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(AUTHORIZATION, token)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(MockMvcResultMatchers.status().isUnauthorized());
     }
 
     @Test
     public void shouldReturnPaymentsFromSignedAccountWhenDeletingPaymentBeenSignedIn() throws Exception {
+        Account account = AccountBuilder.build();
+        String token = SessionBuilder.build(account);
         var request = PaymentCreationRequestBuilder.build();
 
         Mockito.when(accountService.findByEmail(ArgumentMatchers.anyString()))
-            .thenReturn(account);
+                .thenReturn(account);
 
         Mockito.doNothing().when(paymentService)
-            .delete(
-                ArgumentMatchers.any(Account.class),
-                ArgumentMatchers.anyLong(),
-                ArgumentMatchers.any()
-            );
+                .delete(
+                        ArgumentMatchers.any(Account.class),
+                        ArgumentMatchers.anyLong(),
+                        ArgumentMatchers.any()
+                );
 
         mockmvc.perform(MockMvcRequestBuilders.delete(String.format("/v1/payments/1?type=%s", PaymentSelectionOption.THIS_PAYMENT))
-                .contentType(MediaType.APPLICATION_JSON)
-                .header(AUTHORIZATION, token)
-                .content(objectMapper.writeValueAsString(request)))
-            .andExpect(MockMvcResultMatchers.status().isNoContent());
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(AUTHORIZATION, token)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(MockMvcResultMatchers.status().isNoContent());
     }
 }
