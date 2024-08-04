@@ -17,4 +17,16 @@ public class AccountBuilder {
                 .updatedAt(LocalDateTime.now())
                 .build();
     }
+
+    public static Account build(AccountRole role) {
+        return Account.builder()
+                .id(1L)
+                .name("John Doe")
+                .email("john.doe@mail.com")
+                .password("LOREMARIE")
+                .role(role)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+    }
 }

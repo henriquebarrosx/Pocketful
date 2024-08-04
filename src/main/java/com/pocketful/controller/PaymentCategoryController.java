@@ -2,7 +2,7 @@ package com.pocketful.controller;
 
 import com.pocketful.entity.PaymentCategory;
 import com.pocketful.service.PaymentCategoryService;
-import com.pocketful.web.dto.payment_category.NewPaymentCategoryDTO;
+import com.pocketful.web.dto.payment_category.PaymentCategoryCreationRequestDTO;
 import com.pocketful.web.dto.payment_category.PaymentCategoryDTO;
 import com.pocketful.web.mapper.PaymentCategoryDTOMapper;
 import lombok.AllArgsConstructor;
@@ -19,56 +19,40 @@ import java.util.List;
 @RestController
 public class PaymentCategoryController {
     private final PaymentCategoryService paymentCategoriesService;
-    private final PaymentCategoryDTOMapper paymentCategoryDTOMapper;
 
     @GetMapping
     public ResponseEntity<List<PaymentCategoryDTO>> getAll() {
-        log.info("Getting all payments categories");
+        log.info("Getting payments categories");
 
-        List<PaymentCategoryDTO> paymentCategories = paymentCategoriesService.findAll().stream()
-                .map(paymentCategoryDTOMapper)
+        List<PaymentCategoryDTO> categories = paymentCategoriesService.findAll().stream()
+                .map((category) -> PaymentCategoryDTOMapper.apply(category))
                 .toList();
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(paymentCategories);
+        return ResponseEntity.status(HttpStatus.OK).body(categories);
     }
 
     @GetMapping("{id}")
     public ResponseEntity<PaymentCategoryDTO> getById(@PathVariable Long id) {
         log.info("Getting payment category by id - {}", id);
         PaymentCategory category = paymentCategoriesService.findById(id);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(paymentCategoryDTOMapper.apply(category));
+        return ResponseEntity.status(HttpStatus.OK).body(PaymentCategoryDTOMapper.apply(category));
     }
 
     @PostMapping
-    public ResponseEntity<PaymentCategoryDTO> create(@RequestBody NewPaymentCategoryDTO request) {
+    public ResponseEntity<PaymentCategoryDTO> create(@RequestBody PaymentCategoryCreationRequestDTO request) {
         log.info("Creating payment category: name - {}", request.getName());
-
-        PaymentCategory paymentCategory = paymentCategoriesService
-                .create(request);
-
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(paymentCategoryDTOMapper.apply(paymentCategory));
+        PaymentCategory category = paymentCategoriesService.create(request.getName());
+        return ResponseEntity.status(HttpStatus.CREATED).body(PaymentCategoryDTOMapper.apply(category));
     }
 
     @PutMapping("{id}")
     public ResponseEntity<PaymentCategoryDTO> update(
             @PathVariable Long id,
-            @RequestBody NewPaymentCategoryDTO request
+            @RequestBody PaymentCategoryCreationRequestDTO request
     ) {
         log.info("Updating payment category: id - {} | name - {}", id, request.getName());
-
-        PaymentCategory paymentCategory = paymentCategoriesService
-                .update(id, request);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(paymentCategoryDTOMapper.apply(paymentCategory));
+        PaymentCategory category = paymentCategoriesService.update(id, request);
+        return ResponseEntity.status(HttpStatus.OK).body(PaymentCategoryDTOMapper.apply(category));
     }
 
     @DeleteMapping("{id}")
