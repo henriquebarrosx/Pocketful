@@ -51,7 +51,7 @@ public class PaymentCategoryController {
             @RequestBody PaymentCategoryCreationRequestDTO request
     ) {
         log.info("Updating payment category: id - {} | name - {}", id, request.getName());
-        PaymentCategory category = paymentCategoriesService.update(id, request);
+        PaymentCategory category = paymentCategoriesService.update(id, request.getName());
         return ResponseEntity.status(HttpStatus.OK).body(PaymentCategoryDTOMapper.apply(category));
     }
 
