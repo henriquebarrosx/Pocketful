@@ -149,4 +149,71 @@ public class PaymentCategoryControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id", Matchers.is(category.getId().intValue())))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name", Matchers.is(category.getName())));
     }
+
+    @Test
+    void shouldThrowExceptionWhenUpdatingAndHasDefaultRole() throws Exception {
+        Account account = AccountBuilder.build(AccountRole.DEFAULT);
+        String token = SessionBuilder.build(account);
+
+        Mockito.when(accountService.findByEmail(account.getEmail()))
+                .thenReturn(account);
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/v1/payments/categories/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(AUTHORIZATION, token))
+                .andExpect(MockMvcResultMatchers.status().isForbidden());
+    }
+
+    @Test
+    void shouldReturnCategoriesWhenUpdatingAndHasAdminRole() throws Exception {
+        PaymentCategory category = PaymentCategoryBuilder.build();
+        PaymentCategoryCreationRequestDTO request = new PaymentCategoryCreationRequestDTO(category.getName());
+        Account account = AccountBuilder.build(AccountRole.ADMIN);
+        String token = SessionBuilder.build(account);
+
+        Mockito.when(accountService.findByEmail(account.getEmail()))
+                .thenReturn(account);
+
+        Mockito.when(paymentCategoryService.update(category.getId(), category.getName()))
+                .thenReturn(category);
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/v1/payments/categories/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(AUTHORIZATION, token)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.id", Matchers.is(category.getId().intValue())))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.name", Matchers.is(category.getName())));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenDeletingAndHasDefaultRole() throws Exception {
+        Account account = AccountBuilder.build(AccountRole.DEFAULT);
+        String token = SessionBuilder.build(account);
+
+        Mockito.when(accountService.findByEmail(account.getEmail()))
+                .thenReturn(account);
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/v1/payments/categories/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(AUTHORIZATION, token))
+                .andExpect(MockMvcResultMatchers.status().isForbidden());
+    }
+
+    @Test
+    void shouldReturnCategoriesWhenDeletingAndHasAdminRole() throws Exception {
+        PaymentCategory category = PaymentCategoryBuilder.build();
+        PaymentCategoryCreationRequestDTO request = new PaymentCategoryCreationRequestDTO(category.getName());
+        Account account = AccountBuilder.build(AccountRole.ADMIN);
+        String token = SessionBuilder.build(account);
+
+        Mockito.when(accountService.findByEmail(account.getEmail())).thenReturn(account);
+        Mockito.doNothing().when(paymentCategoryService).delete(category.getId());
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/v1/payments/categories/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(AUTHORIZATION, token)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(MockMvcResultMatchers.status().isNoContent());
+    }
 }

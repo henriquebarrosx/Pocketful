@@ -9,6 +9,13 @@ public abstract class PaymentCreationRequestBuilder {
     public static PaymentCreationRequestDTO build() {
         return PaymentCreationRequestDTO.builder()
                 .paymentCategoryId(1L)
+                .amount(BigDecimal.valueOf(100))
+                .isIndeterminate(false)
+                .frequencyTimes(3)
+                .payed(false)
+                .description("Transport")
+                .isExpense(true)
+                .deadlineAt(LocalDate.now().plusDays(5))
                 .build();
     }
 

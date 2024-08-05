@@ -18,6 +18,18 @@ public class AccountBuilder {
                 .build();
     }
 
+    public static Account buildWithId(Long id) {
+        return Account.builder()
+                .id(id)
+                .name("John Doe")
+                .email("john.doe@mail.com")
+                .password("LOREMARIE")
+                .role(AccountRole.ADMIN)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+    }
+
     public static Account build(AccountRole role) {
         return Account.builder()
                 .id(1L)

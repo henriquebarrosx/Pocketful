@@ -3,7 +3,9 @@ package com.pocketful.repository;
 import com.pocketful.entity.Account;
 import com.pocketful.entity.Payment;
 import com.pocketful.entity.PaymentFrequency;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -23,7 +25,14 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     boolean existsPaymentByPaymentFrequency(PaymentFrequency paymentFrequency);
 
-    void deleteAllByDeadlineAtGreaterThanEqual(LocalDate date);
+    @Transactional
+    @Query("DELETE FROM Payment payment " +
+            "WHERE payment.paymentFrequency.id = :frequencyId " +
+            "AND payment.account.id = :accountId " +
+            "AND payment.deadlineAt = :deadlineAt")
+    void deleteOnlyCurrentAndFuturePayment(PaymentFrequency paymentFrequency,
+                                           Account account,
+                                           LocalDate date);
 
     void deleteAllByPaymentFrequency(PaymentFrequency paymentFrequency);
 }

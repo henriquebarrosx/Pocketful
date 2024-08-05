@@ -39,27 +39,27 @@ public class PaymentService {
 
     public List<Payment> findBy(Account account, LocalDate startAt, LocalDate endAt) {
         return paymentRepository.findAllByAccountAndDeadlineAtBetweenOrderByCreatedAtAsc(
-            account,
-            Objects.isNull(startAt) ? LocalDate.MIN : startAt,
-            Objects.isNull(endAt) ? LocalDate.MAX : endAt
+                account,
+                Objects.isNull(startAt) ? LocalDate.MIN : startAt,
+                Objects.isNull(endAt) ? LocalDate.MAX : endAt
         );
     }
 
     public Payment findById(Long id) {
         return paymentRepository.findById(id)
-            .orElseThrow(() -> new PaymentNotFoundException(id));
+                .orElseThrow(() -> new PaymentNotFoundException(id));
     }
 
     public Payment create(Account account, PaymentCreationRequestDTO paymentParams) {
         PaymentCategory paymentCategory = paymentCategoryService
-            .findById(paymentParams.getPaymentCategoryId());
+                .findById(paymentParams.getPaymentCategoryId());
 
         if (!isValidAmount(paymentParams.getAmount())) {
             throw new InvalidPaymentAmountException();
         }
 
         PaymentFrequency paymentFrequency = paymentFrequencyService
-            .create(paymentParams.getIsIndeterminate(), paymentParams.getFrequencyTimes());
+                .create(paymentParams.getIsIndeterminate(), paymentParams.getFrequencyTimes());
 
         Payment payload = this.getPaymentBuilder(account, paymentParams, paymentCategory, paymentFrequency);
         Payment payment = paymentRepository.save(payload);
@@ -91,7 +91,7 @@ public class PaymentService {
         }
 
         PaymentCategory paymentCategory = paymentCategoryService
-            .findById(paymentParams.getPaymentCategoryId());
+                .findById(paymentParams.getPaymentCategoryId());
 
         if (!isValidAmount(paymentParams.getAmount())) {
             throw new InvalidPaymentAmountException();
@@ -120,7 +120,9 @@ public class PaymentService {
         if (type.equals(PaymentSelectionOption.THIS_PAYMENT)) {
             paymentRepository.delete(payment);
         } else if (type.equals(PaymentSelectionOption.THIS_AND_FUTURE_PAYMENTS)) {
-            paymentRepository.deleteAllByDeadlineAtGreaterThanEqual(payment.getDeadlineAt());
+            var frequency = payment.getPaymentFrequency();
+            var deadlineAt = payment.getDeadlineAt();
+            paymentRepository.deleteOnlyCurrentAndFuturePayment(frequency, account, deadlineAt);
         } else if (type.equals(PaymentSelectionOption.ALL_PAYMENTS)) {
             paymentRepository.deleteAllByPaymentFrequency(payment.getPaymentFrequency());
         }
@@ -138,19 +140,19 @@ public class PaymentService {
 
         for (int index = 1; index < frequency.getTimes(); index++) {
             LocalDate deadline = LocalDate.from(payload.getDeadlineAt())
-                .plusMonths(index);
+                    .plusMonths(index);
 
             payments.add(
-                Payment.builder()
-                    .amount(payload.getAmount())
-                    .description(payload.getDescription())
-                    .payed(payload.getPayed())
-                    .isExpense(payload.getIsExpense())
-                    .deadlineAt(deadline)
-                    .account(account)
-                    .paymentCategory(category)
-                    .paymentFrequency(frequency)
-                    .build()
+                    Payment.builder()
+                            .amount(payload.getAmount())
+                            .description(payload.getDescription())
+                            .payed(payload.getPayed())
+                            .isExpense(payload.getIsExpense())
+                            .deadlineAt(deadline)
+                            .account(account)
+                            .paymentCategory(category)
+                            .paymentFrequency(frequency)
+                            .build()
             );
         }
 
@@ -159,29 +161,29 @@ public class PaymentService {
 
     public void processPaymentEdition(Payment payment, PaymentSelectionOption type) {
         List<Payment> updatedPayments = getPaymentsBySelectionType(payment, type)
-            .stream()
-            .map((data) -> {
-                LocalDate deadline = data.getDeadlineAt().withDayOfMonth(payment.getDeadlineAt().getDayOfMonth());
+                .stream()
+                .map((data) -> {
+                    LocalDate deadline = data.getDeadlineAt().withDayOfMonth(payment.getDeadlineAt().getDayOfMonth());
 
-                data.setAmount(payment.getAmount());
-                data.setPaymentCategory(payment.getPaymentCategory());
-                data.setDescription(payment.getDescription());
-                data.setPayed(payment.getPayed());
-                data.setIsExpense(payment.getIsExpense());
-                data.setDeadlineAt(deadline);
-                data.setUpdatedAt(LocalDateTime.now());
-                return data;
-            }).toList();
+                    data.setAmount(payment.getAmount());
+                    data.setPaymentCategory(payment.getPaymentCategory());
+                    data.setDescription(payment.getDescription());
+                    data.setPayed(payment.getPayed());
+                    data.setIsExpense(payment.getIsExpense());
+                    data.setDeadlineAt(deadline);
+                    data.setUpdatedAt(LocalDateTime.now());
+                    return data;
+                }).toList();
 
         paymentRepository.saveAll(updatedPayments);
     }
 
     public void notifyPendingPaymentsByDate(LocalDate date) {
         List<Payment> payments = paymentRepository
-            .findAllByDeadlineAtLessThanEqualAndPayedIsFalseAndIsExpenseIsTrue(date);
+                .findAllByDeadlineAtLessThanEqualAndPayedIsFalseAndIsExpenseIsTrue(date);
 
         Map<Account, List<Payment>> paymentsByAccounts = payments.stream()
-            .collect(Collectors.groupingBy(Payment::getAccount));
+                .collect(Collectors.groupingBy(Payment::getAccount));
 
         paymentsByAccounts.forEach((account, paymentList) -> {
             String to = account.getEmail();
@@ -190,8 +192,8 @@ public class PaymentService {
             Template textTemplate = emailService.getTemplate("lembrete-vencimento-text.ftl");
 
             List<PaymentModel> paymentsModel = paymentList.stream()
-                .map(payment -> convertPaymentToModel(payment, date))
-                .toList();
+                    .map(payment -> convertPaymentToModel(payment, date))
+                    .toList();
 
             Map<String, Object> model = new HashMap<>();
             model.put("account", account);
@@ -211,11 +213,11 @@ public class PaymentService {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
         return PaymentModel.builder()
-            .description(payment.getDescription())
-            .deadlineAt(dateTimeFormatter.format(payment.getDeadlineAt()))
-            .amount(currency.getValue())
-            .isOverdue(payment.getDeadlineAt().isBefore(date))
-            .build();
+                .description(payment.getDescription())
+                .deadlineAt(dateTimeFormatter.format(payment.getDeadlineAt()))
+                .amount(currency.getValue())
+                .isOverdue(payment.getDeadlineAt().isBefore(date))
+                .build();
     }
 
     private List<Payment> getPaymentsBySelectionType(Payment payment, PaymentSelectionOption type) {
