@@ -61,9 +61,9 @@ public class PaymentService {
         PaymentFrequency paymentFrequency = paymentFrequencyService
             .create(paymentParams.getIsIndeterminate(), paymentParams.getFrequencyTimes());
 
-        Payment payment = this.getPaymentBuilder(account, paymentParams, paymentCategory, paymentFrequency);
+        Payment payload = this.getPaymentBuilder(account, paymentParams, paymentCategory, paymentFrequency);
+        Payment payment = paymentRepository.save(payload);
 
-        paymentRepository.save(payment);
         log.info("Payment created successfully: account - {} | payment id - {}", account.getId(), payment.getId());
 
         paymentGenerationQueueProducer.processPaymentGeneration(payment);
