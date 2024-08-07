@@ -12,12 +12,14 @@ import com.pocketful.exception.PaymentFrequency.InvalidFrequencyTimesException;
 import com.pocketful.producer.PaymentEditionQueueProducer;
 import com.pocketful.producer.PaymentGenerationQueueProducer;
 import com.pocketful.repository.PaymentRepository;
+import com.pocketful.service.AccountService;
 import com.pocketful.service.PaymentCategoryService;
 import com.pocketful.service.PaymentFrequencyService;
 import com.pocketful.service.PaymentService;
 import com.pocketful.utils.*;
 import com.pocketful.web.dto.payment.PaymentCreationRequestDTO;
 import com.pocketful.web.dto.payment.PaymentEditionRequestDTO;
+import com.pocketful.web.dto.payment.PaymentGenerationPayloadDTO;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,6 +49,9 @@ public class PaymentServiceTest {
 
     @Mock
     private PaymentEditionQueueProducer paymentEditionQueueProducer;
+
+    @Mock
+    private AccountService accountService;
 
     @Mock
     private PaymentRepository paymentRepository;
@@ -305,23 +310,25 @@ public class PaymentServiceTest {
         PaymentCategory category = PaymentCategoryBuilder.build();
         PaymentFrequency frequency = PaymentFrequencyBuilder.build();
         Payment payment = PaymentBuilder.build(account, category, frequency);
-
         var deleteArgCaptor = ArgumentCaptor.forClass(Payment.class);
-        Mockito.when(paymentRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(payment));
-        Mockito.doNothing().when(paymentRepository).delete(ArgumentMatchers.any(Payment.class));
+
+        Mockito.when(paymentRepository.findById(ArgumentMatchers.anyLong()))
+                .thenReturn(Optional.of(payment));
+
+        Mockito.doNothing().when(paymentRepository)
+                .delete(ArgumentMatchers.any(Payment.class));
 
         paymentService.delete(account, paymentId, PaymentSelectionOption.THIS_PAYMENT);
 
         Mockito.verify(paymentRepository, Mockito.times(1))
                 .delete(deleteArgCaptor.capture());
+
         Mockito.verify(paymentRepository, Mockito.times(0))
-                .deleteOnlyCurrentAndFuturePayment(
-                        ArgumentMatchers.any(PaymentFrequency.class),
-                        ArgumentMatchers.any(Account.class),
-                        ArgumentMatchers.any(LocalDate.class)
-                );
+                .deleteCurrentAndFutureByAccount(ArgumentMatchers.any(PaymentFrequency.class), ArgumentMatchers.any(Account.class), ArgumentMatchers.any(LocalDate.class));
+
         Mockito.verify(paymentRepository, Mockito.times(0))
                 .deleteAllByPaymentFrequency(ArgumentMatchers.any(PaymentFrequency.class));
+
         Assertions.assertEquals(paymentId, deleteArgCaptor.getValue().getId());
     }
 
@@ -332,27 +339,178 @@ public class PaymentServiceTest {
         PaymentCategory category = PaymentCategoryBuilder.build();
         PaymentFrequency frequency = PaymentFrequencyBuilder.build();
         Payment payment = PaymentBuilder.build(account, category, frequency);
+        var frequencyArgCaptor = ArgumentCaptor.forClass(PaymentFrequency.class);
+        var accountArgCaptor = ArgumentCaptor.forClass(Account.class);
+        var deadlineArgCaptor = ArgumentCaptor.forClass(LocalDate.class);
 
-        var targetFrequencyArgCaptor = ArgumentCaptor.forClass(PaymentFrequency.class);
-        var targetAccountArgCaptor = ArgumentCaptor.forClass(Account.class);
-        var targetDeadlineArgCaptor = ArgumentCaptor.forClass(LocalDate.class);
-        Mockito.when(paymentRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(payment));
+        Mockito.when(paymentRepository.findById(ArgumentMatchers.anyLong()))
+                .thenReturn(Optional.of(payment));
 
         paymentService.delete(account, paymentId, PaymentSelectionOption.THIS_AND_FUTURE_PAYMENTS);
 
         Mockito.verify(paymentRepository, Mockito.times(0))
                 .delete(ArgumentMatchers.any(Payment.class));
+
         Mockito.verify(paymentRepository, Mockito.times(0))
                 .deleteAllByPaymentFrequency(ArgumentMatchers.any(PaymentFrequency.class));
 
         Mockito.verify(paymentRepository, Mockito.times(1))
-                .deleteOnlyCurrentAndFuturePayment(
-                        targetFrequencyArgCaptor.capture(),
-                        targetAccountArgCaptor.capture(),
-                        targetDeadlineArgCaptor.capture());
+                .deleteCurrentAndFutureByAccount(frequencyArgCaptor.capture(), accountArgCaptor.capture(), deadlineArgCaptor.capture());
 
-        Assertions.assertEquals(frequency.getId(), targetFrequencyArgCaptor.getValue().getId());
-        Assertions.assertEquals(account.getId(), targetAccountArgCaptor.getValue().getId());
-        Assertions.assertEquals(payment.getDeadlineAt(), targetDeadlineArgCaptor.getValue());
+        Assertions.assertEquals(frequency.toString(), frequencyArgCaptor.getValue().toString());
+        Assertions.assertEquals(account.toString(), accountArgCaptor.getValue().toString());
+        Assertions.assertEquals(payment.getDeadlineAt(), deadlineArgCaptor.getValue());
+    }
+
+    @Test
+    void shouldDeleteAllPaymentsByFrequencyThatBelongsToSignedAccountWhenSelectionTypeIsEqualsAllPayments() {
+        Long paymentId = 1L;
+        Account account = AccountBuilder.buildWithId(1L);
+        PaymentCategory category = PaymentCategoryBuilder.build();
+        PaymentFrequency frequency = PaymentFrequencyBuilder.build();
+        Payment payment = PaymentBuilder.build(account, category, frequency);
+        var frequencyArgCaptor = ArgumentCaptor.forClass(PaymentFrequency.class);
+
+        Mockito.when(paymentRepository.findById(ArgumentMatchers.anyLong()))
+                .thenReturn(Optional.of(payment));
+
+        paymentService.delete(account, paymentId, PaymentSelectionOption.ALL_PAYMENTS);
+
+        Mockito.verify(paymentRepository, Mockito.times(0))
+                .delete(ArgumentMatchers.any(Payment.class));
+
+        Mockito.verify(paymentRepository, Mockito.times(0))
+                .deleteCurrentAndFutureByAccount(ArgumentMatchers.any(PaymentFrequency.class), ArgumentMatchers.any(Account.class), ArgumentMatchers.any(LocalDate.class));
+
+        Mockito.verify(paymentRepository, Mockito.times(1))
+                .deleteAllByPaymentFrequency(frequencyArgCaptor.capture());
+
+        Assertions.assertEquals(frequency.toString(), frequencyArgCaptor.getValue().toString());
+    }
+
+    @Test
+    void shouldCreatePaymentsByFrequencyTimesMinus1WhenProcessPaymentGeneration() {
+        Account account = AccountBuilder.buildWithId(1L);
+        PaymentCategory category = PaymentCategoryBuilder.build();
+        PaymentFrequency frequency = PaymentFrequencyBuilder.build(3);
+        ArgumentCaptor<List<Payment>> argCaptor = ArgumentCaptor.forClass(List.class);
+        PaymentGenerationPayloadDTO payload = PaymentGenerationPayloadBuilder.build(1L, LocalDate.of(2024, 5, 12), account, category, frequency);
+
+        Mockito.when(paymentFrequencyService.findById(ArgumentMatchers.anyLong())).thenReturn(frequency);
+        Mockito.when(paymentCategoryService.findById(ArgumentMatchers.anyLong())).thenReturn(category);
+        Mockito.when(accountService.findById(ArgumentMatchers.anyLong())).thenReturn(account);
+
+        paymentService.processPaymentGeneration(payload);
+
+        Mockito.verify(paymentRepository, Mockito.times(1)).saveAll(argCaptor.capture());
+        Assertions.assertEquals(2, argCaptor.getValue().size());
+
+        Assertions.assertEquals(frequency.toString(), argCaptor.getValue().get(0).getPaymentFrequency().toString());
+        Assertions.assertEquals(category.toString(), argCaptor.getValue().get(0).getPaymentCategory().toString());
+        Assertions.assertEquals(LocalDate.of(2024, 6, 12), argCaptor.getValue().get(0).getDeadlineAt());
+        Assertions.assertEquals(BigDecimal.valueOf(1000), argCaptor.getValue().get(0).getAmount());
+        Assertions.assertEquals(false, argCaptor.getValue().get(0).getPayed());
+        Assertions.assertEquals(true, argCaptor.getValue().get(0).getIsExpense());
+        Assertions.assertEquals("Transport", argCaptor.getValue().get(0).getDescription());
+
+        Assertions.assertEquals(frequency.toString(), argCaptor.getValue().get(0).getPaymentFrequency().toString());
+        Assertions.assertEquals(category.toString(), argCaptor.getValue().get(0).getPaymentCategory().toString());
+        Assertions.assertEquals(LocalDate.of(2024, 7, 12), argCaptor.getValue().get(1).getDeadlineAt());
+        Assertions.assertEquals(BigDecimal.valueOf(1000), argCaptor.getValue().get(0).getAmount());
+        Assertions.assertEquals(false, argCaptor.getValue().get(0).getPayed());
+        Assertions.assertEquals(true, argCaptor.getValue().get(0).getIsExpense());
+        Assertions.assertEquals("Transport", argCaptor.getValue().get(0).getDescription());
+    }
+
+    @Test
+    void shouldUpdateOnlyCurrentPaymentWhenSelectionTypeIsEqualsThisPayment() {
+        Account account = AccountBuilder.buildWithId(1L);
+        PaymentCategory category = PaymentCategoryBuilder.build();
+        PaymentFrequency frequency = PaymentFrequencyBuilder.build(3);
+        ArgumentCaptor<List<Payment>> argCaptor = ArgumentCaptor.forClass(List.class);
+        Payment payment = PaymentBuilder.build(1L, LocalDate.of(2024, 5, 12), account, category, frequency);
+
+        paymentService.processPaymentEdition(payment, PaymentSelectionOption.THIS_PAYMENT);
+
+        Mockito.verify(paymentRepository, Mockito.times(1)).saveAll(argCaptor.capture());
+        Assertions.assertEquals(1, argCaptor.getValue().size());
+
+        Assertions.assertEquals(frequency.toString(), argCaptor.getValue().get(0).getPaymentFrequency().toString());
+        Assertions.assertEquals(category.toString(), argCaptor.getValue().get(0).getPaymentCategory().toString());
+        Assertions.assertEquals(LocalDate.of(2024, 5, 12), argCaptor.getValue().get(0).getDeadlineAt());
+        Assertions.assertEquals(BigDecimal.valueOf(1000), argCaptor.getValue().get(0).getAmount());
+        Assertions.assertEquals(false, argCaptor.getValue().get(0).getPayed());
+        Assertions.assertEquals(true, argCaptor.getValue().get(0).getIsExpense());
+        Assertions.assertEquals("Exame médico", argCaptor.getValue().get(0).getDescription());
+    }
+
+    @Test
+    void shouldUpdateCurrentAndFuturePaymentsFieldsExceptDeadlineMonthAndYearByBasePaymentWhenSelectionTypeIsEqualsThisAndFuturePayment() {
+        Account account = AccountBuilder.buildWithId(1L);
+        PaymentCategory category = PaymentCategoryBuilder.build();
+        PaymentFrequency frequency = PaymentFrequencyBuilder.build(3);
+        ArgumentCaptor<List<Payment>> argCaptor = ArgumentCaptor.forClass(List.class);
+        Payment targetPayment = PaymentBuilder.build(1L, LocalDate.of(2024, 5, 17), account, category, frequency);
+        Payment paymentFromFuture1 = PaymentBuilder.build(2L, LocalDate.of(2024, 6, 24), account, category, frequency);
+        Payment paymentFromFuture2 = PaymentBuilder.build(3L, LocalDate.of(2024, 7, 15), account, category, frequency);
+
+        Mockito.when(paymentRepository.findByAccountFromDeadline(ArgumentMatchers.anyLong(), ArgumentMatchers.any(LocalDate.class)))
+                .thenReturn(List.of(paymentFromFuture1, paymentFromFuture2));
+
+        paymentService.processPaymentEdition(targetPayment, PaymentSelectionOption.THIS_AND_FUTURE_PAYMENTS);
+
+        Mockito.verify(paymentRepository, Mockito.times(1)).saveAll(argCaptor.capture());
+        Assertions.assertEquals(2, argCaptor.getValue().size());
+
+        Assertions.assertEquals(frequency.toString(), argCaptor.getValue().get(0).getPaymentFrequency().toString());
+        Assertions.assertEquals(category.toString(), argCaptor.getValue().get(0).getPaymentCategory().toString());
+        Assertions.assertEquals(LocalDate.of(2024, 6, 17), argCaptor.getValue().get(0).getDeadlineAt());
+        Assertions.assertEquals(BigDecimal.valueOf(1000), argCaptor.getValue().get(0).getAmount());
+        Assertions.assertEquals(false, argCaptor.getValue().get(0).getPayed());
+        Assertions.assertEquals(true, argCaptor.getValue().get(0).getIsExpense());
+        Assertions.assertEquals("Exame médico", argCaptor.getValue().get(0).getDescription());
+
+        Assertions.assertEquals(frequency.toString(), argCaptor.getValue().get(1).getPaymentFrequency().toString());
+        Assertions.assertEquals(category.toString(), argCaptor.getValue().get(1).getPaymentCategory().toString());
+        Assertions.assertEquals(LocalDate.of(2024, 7, 17), argCaptor.getValue().get(1).getDeadlineAt());
+        Assertions.assertEquals(BigDecimal.valueOf(1000), argCaptor.getValue().get(1).getAmount());
+        Assertions.assertEquals(false, argCaptor.getValue().get(1).getPayed());
+        Assertions.assertEquals(true, argCaptor.getValue().get(1).getIsExpense());
+        Assertions.assertEquals("Exame médico", argCaptor.getValue().get(1).getDescription());
+    }
+
+    @Test
+    void shouldUpdateAllPaymentsFieldsExceptDeadlineMonthAndYearByBasePaymentWhenSelectionTypeIsEqualsAllPayments() {
+        Account account = AccountBuilder.buildWithId(1L);
+        PaymentCategory category = PaymentCategoryBuilder.build();
+        PaymentFrequency frequency = PaymentFrequencyBuilder.build(3);
+        ArgumentCaptor<List<Payment>> saveArgCaptor = ArgumentCaptor.forClass(List.class);
+        Payment paymentFromPast = PaymentBuilder.build(1L, LocalDate.of(2024, 5, 17), account, category, frequency);
+        Payment targetPayment = PaymentBuilder.build(2L, LocalDate.of(2024, 6, 24), account, category, frequency);
+        Payment paymentFromFuture = PaymentBuilder.build(3L, LocalDate.of(2024, 7, 15), account, category, frequency);
+
+        Mockito.when(paymentRepository.findAllByPaymentFrequency(ArgumentMatchers.any(PaymentFrequency.class)))
+                .thenReturn(List.of(paymentFromPast, paymentFromFuture));
+
+        paymentService.processPaymentEdition(targetPayment, PaymentSelectionOption.ALL_PAYMENTS);
+
+        Mockito.verify(paymentRepository, Mockito.times(1)).saveAll(saveArgCaptor.capture());
+        Assertions.assertEquals(2, saveArgCaptor.getValue().size());
+
+        Assertions.assertEquals(frequency.toString(), saveArgCaptor.getValue().get(0).getPaymentFrequency().toString());
+        Assertions.assertEquals(category.toString(), saveArgCaptor.getValue().get(0).getPaymentCategory().toString());
+        Assertions.assertEquals(LocalDate.of(2024, 5, 24), saveArgCaptor.getValue().get(0).getDeadlineAt());
+        Assertions.assertEquals(BigDecimal.valueOf(1000), saveArgCaptor.getValue().get(0).getAmount());
+        Assertions.assertEquals(false, saveArgCaptor.getValue().get(0).getPayed());
+        Assertions.assertEquals(true, saveArgCaptor.getValue().get(0).getIsExpense());
+        Assertions.assertEquals("Exame médico", saveArgCaptor.getValue().get(0).getDescription());
+
+        Assertions.assertEquals(frequency.toString(), saveArgCaptor.getValue().get(1).getPaymentFrequency().toString());
+        Assertions.assertEquals(category.toString(), saveArgCaptor.getValue().get(1).getPaymentCategory().toString());
+        Assertions.assertEquals(LocalDate.of(2024, 7, 24), saveArgCaptor.getValue().get(1).getDeadlineAt());
+        Assertions.assertEquals(BigDecimal.valueOf(1000), saveArgCaptor.getValue().get(1).getAmount());
+        Assertions.assertEquals(false, saveArgCaptor.getValue().get(1).getPayed());
+        Assertions.assertEquals(true, saveArgCaptor.getValue().get(1).getIsExpense());
+        Assertions.assertEquals("Exame médico", saveArgCaptor.getValue().get(1).getDescription());
     }
 }

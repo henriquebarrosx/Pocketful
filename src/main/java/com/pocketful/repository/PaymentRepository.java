@@ -19,20 +19,24 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
         LocalDate endAt
     );
 
-    List<Payment> findAllByDeadlineAtGreaterThanEqual(LocalDate date);
+    @Query("SELECT * " +
+            "FROM payments " +
+            "WHERE deadline_at >= :date " +
+            "AND account_id = :accountId")
+    List<Payment> findByAccountFromDeadline(Long accountId, LocalDate date);
 
     List<Payment> findAllByPaymentFrequency(PaymentFrequency paymentFrequency);
 
     boolean existsPaymentByPaymentFrequency(PaymentFrequency paymentFrequency);
 
     @Transactional
-    @Query("DELETE FROM Payment payment " +
-            "WHERE payment.paymentFrequency.id = :frequencyId " +
-            "AND payment.account.id = :accountId " +
-            "AND payment.deadlineAt = :deadlineAt")
-    void deleteOnlyCurrentAndFuturePayment(PaymentFrequency paymentFrequency,
-                                           Account account,
-                                           LocalDate date);
+    @Query("DELETE FROM payments " +
+            "WHERE payment_frequency_id = :frequencyId " +
+            "AND account_id = :accountId " +
+            "AND deadlineAt = :deadlineAt")
+    void deleteCurrentAndFutureByAccount(PaymentFrequency paymentFrequency,
+                                         Account account,
+                                         LocalDate date);
 
     void deleteAllByPaymentFrequency(PaymentFrequency paymentFrequency);
 }

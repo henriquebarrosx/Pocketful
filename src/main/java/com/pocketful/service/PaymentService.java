@@ -38,11 +38,9 @@ public class PaymentService {
     private final PaymentGenerationQueueProducer paymentGenerationQueueProducer;
 
     public List<Payment> findBy(Account account, LocalDate startAt, LocalDate endAt) {
-        return paymentRepository.findAllByAccountAndDeadlineAtBetweenOrderByCreatedAtAsc(
-                account,
-                Objects.isNull(startAt) ? LocalDate.MIN : startAt,
-                Objects.isNull(endAt) ? LocalDate.MAX : endAt
-        );
+        LocalDate from = Objects.isNull(startAt) ? LocalDate.MIN : startAt;
+        LocalDate to = Objects.isNull(endAt) ? LocalDate.MAX : endAt;
+        return paymentRepository.findAllByAccountAndDeadlineAtBetweenOrderByCreatedAtAsc(account, from, to);
     }
 
     public Payment findById(Long id) {
@@ -117,14 +115,18 @@ public class PaymentService {
             throw new PaymentNotFoundException(id);
         }
 
-        if (type.equals(PaymentSelectionOption.THIS_PAYMENT)) {
-            paymentRepository.delete(payment);
-        } else if (type.equals(PaymentSelectionOption.THIS_AND_FUTURE_PAYMENTS)) {
-            var frequency = payment.getPaymentFrequency();
-            var deadlineAt = payment.getDeadlineAt();
-            paymentRepository.deleteOnlyCurrentAndFuturePayment(frequency, account, deadlineAt);
-        } else if (type.equals(PaymentSelectionOption.ALL_PAYMENTS)) {
-            paymentRepository.deleteAllByPaymentFrequency(payment.getPaymentFrequency());
+        switch (type) {
+            case THIS_PAYMENT -> {
+                paymentRepository.delete(payment);
+            }
+            case THIS_AND_FUTURE_PAYMENTS -> {
+                var frequency = payment.getPaymentFrequency();
+                var deadlineAt = payment.getDeadlineAt();
+                paymentRepository.deleteCurrentAndFutureByAccount(frequency, account, deadlineAt);
+            }
+            case ALL_PAYMENTS -> {
+                paymentRepository.deleteAllByPaymentFrequency(payment.getPaymentFrequency());
+            }
         }
 
         boolean hasPayments = paymentRepository.existsPaymentByPaymentFrequency(payment.getPaymentFrequency());
@@ -223,14 +225,21 @@ public class PaymentService {
     private List<Payment> getPaymentsBySelectionType(Payment payment, PaymentSelectionOption type) {
         List<Payment> payments = new ArrayList<>();
 
-        if (type.equals(PaymentSelectionOption.THIS_PAYMENT)) {
-            payments.add(payment);
-        } else if (type.equals(PaymentSelectionOption.THIS_AND_FUTURE_PAYMENTS)) {
-            List<Payment> paymentsBetween = paymentRepository.findAllByDeadlineAtGreaterThanEqual(payment.getDeadlineAt());
-            payments.addAll(paymentsBetween);
-        } else if (type.equals(PaymentSelectionOption.ALL_PAYMENTS)) {
-            List<Payment> allPayments = paymentRepository.findAllByPaymentFrequency(payment.getPaymentFrequency());
-            payments.addAll(allPayments);
+        switch (type) {
+            case THIS_PAYMENT -> {
+                payments.add(payment);
+            }
+            case THIS_AND_FUTURE_PAYMENTS -> {
+                List<Payment> paymentsBetween = paymentRepository.findByAccountFromDeadline(
+                        payment.getAccount().getId(),
+                        payment.getDeadlineAt());
+
+                payments.addAll(paymentsBetween);
+            }
+            case ALL_PAYMENTS -> {
+                List<Payment> allPayments = paymentRepository.findAllByPaymentFrequency(payment.getPaymentFrequency());
+                payments.addAll(allPayments);
+            }
         }
 
         return payments;
