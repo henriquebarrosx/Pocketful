@@ -5,6 +5,7 @@ import com.pocketful.entity.Payment;
 import com.pocketful.entity.PaymentFrequency;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDate;
@@ -29,6 +30,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     boolean existsPaymentByPaymentFrequency(PaymentFrequency paymentFrequency);
 
+    @Modifying
     @Transactional
     @Query("DELETE FROM payments " +
             "WHERE payment_frequency_id = :frequencyId " +
