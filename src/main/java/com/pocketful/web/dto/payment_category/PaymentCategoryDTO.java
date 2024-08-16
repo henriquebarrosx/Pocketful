@@ -1,6 +1,8 @@
 package com.pocketful.web.dto.payment_category;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
 
 @Getter
 @Builder
