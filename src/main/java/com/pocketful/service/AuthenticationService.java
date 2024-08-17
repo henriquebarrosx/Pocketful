@@ -16,11 +16,10 @@ public class AuthenticationService {
 
     public AuthenticatedAccountDTO authenticate(String email, String password) {
         var credentials = new UsernamePasswordAuthenticationToken(email, password);
-        var auth = authenticationManager.authenticate(credentials);
+        var authentication = authenticationManager.authenticate(credentials);
+        Account account = (Account) authentication.getPrincipal();
 
-        String token = sessionManagerService.init((String) auth.getPrincipal());
-        Account account = accountService.findByEmail(email);
-
+        String token = sessionManagerService.init(account.getEmail());
         return this.getAuthenticatedAccountDTO(account, token);
     }
 
