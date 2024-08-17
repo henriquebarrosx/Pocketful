@@ -1,16 +1,16 @@
-version: "3"
+version: "3.8"
 
 services:
     db:
-        image: postgres
+        image: postgres:15
         restart: always
         shm_size: 128mb
         ports:
             - "5432:5432"
         environment:
-            POSTGRES_DB: ${DATABASE_NAME}
-            POSTGRES_USER: ${DATABASE_USERNAME}
-            POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+            POSTGRES_DB: pocketful
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
         volumes:
             - pgdata:/var/lib/postgresql/data
         networks:
