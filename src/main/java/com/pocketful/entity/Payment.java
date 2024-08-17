@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Table(name = "payments")
+@Entity
 @Data
 @Builder
 @NoArgsConstructor
