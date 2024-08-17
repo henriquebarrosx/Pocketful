@@ -73,4 +73,10 @@ public class GlobalExceptionHandler {
         ExceptionDTO exceptionDTO = new ExceptionDTO(exception.getMessage());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(exceptionDTO);
     }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ExceptionDTO> handleInternalServerError(Exception exception) {
+        ExceptionDTO exceptionDTO = new ExceptionDTO(exception.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(exceptionDTO);
+    }
 }

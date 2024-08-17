@@ -14,7 +14,7 @@ import com.pocketful.web.dto.payment.PaymentGenerationPayloadDTO;
 import com.pocketful.web.view.payment.PaymentModel;
 import freemarker.template.Template;
 import jakarta.transaction.Transactional;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -26,7 +26,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Service
 public class PaymentService {
     private final EmailService emailService;
@@ -40,7 +40,7 @@ public class PaymentService {
     public List<Payment> findBy(Account account, LocalDate startAt, LocalDate endAt) {
         LocalDate from = Objects.isNull(startAt) ? LocalDate.MIN : startAt;
         LocalDate to = Objects.isNull(endAt) ? LocalDate.MAX : endAt;
-        return paymentRepository.findAllByAccountAndDeadlineAtBetweenOrderByCreatedAtAsc(account, from, to);
+        return paymentRepository.findByDeadlineAtBetween(account, from, to);
     }
 
     public Payment findById(Long id) {
@@ -122,7 +122,7 @@ public class PaymentService {
             case THIS_AND_FUTURE_PAYMENTS -> {
                 var frequency = payment.getPaymentFrequency();
                 var deadlineAt = payment.getDeadlineAt();
-                paymentRepository.deleteCurrentAndFutureByAccount(frequency, account, deadlineAt);
+                paymentRepository.deleteByDeadlineAtBetweenPresentAndFuture(frequency.getId(), account.getId(), deadlineAt);
             }
             case ALL_PAYMENTS -> {
                 paymentRepository.deleteAllByPaymentFrequency(payment.getPaymentFrequency());
@@ -182,7 +182,7 @@ public class PaymentService {
 
     public void notifyPendingPaymentsByDate(LocalDate date) {
         List<Payment> payments = paymentRepository
-                .findAllByDeadlineAtLessThanEqualAndPayedIsFalseAndIsExpenseIsTrue(date);
+                .findPendingBetweenNowAndDate(date);
 
         Map<Account, List<Payment>> paymentsByAccounts = payments.stream()
                 .collect(Collectors.groupingBy(Payment::getAccount));
@@ -230,7 +230,7 @@ public class PaymentService {
                 payments.add(payment);
             }
             case THIS_AND_FUTURE_PAYMENTS -> {
-                List<Payment> paymentsBetween = paymentRepository.findByAccountFromDeadline(
+                List<Payment> paymentsBetween = paymentRepository.findByDeadlineAtGreaterThanOrEqual(
                         payment.getAccount().getId(),
                         payment.getDeadlineAt());
 

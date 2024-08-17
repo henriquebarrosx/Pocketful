@@ -30,8 +30,7 @@ public class SecurityFilterConfig extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
                                     @NonNull HttpServletResponse response,
-                                    @NonNull FilterChain filterChain) throws ServletException, IOException
-    {
+                                    @NonNull FilterChain filterChain) throws ServletException, IOException {
         Optional<String> token = this.getTokenFromHeaders(request);
 
         if (token.isPresent()) {
@@ -41,9 +40,7 @@ public class SecurityFilterConfig extends OncePerRequestFilter {
                 Account account = accountService.findByEmail(sessionEmail);
                 var authentication = new UsernamePasswordAuthenticationToken(account, null, account.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-            }
-
-            else {
+            } else {
                 logger.error("Invalid provided access token");
             }
         }

@@ -12,7 +12,6 @@ import com.pocketful.web.dto.payment.PaymentIdDTO;
 import com.pocketful.web.mapper.PaymentDTOMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,15 +30,15 @@ public class PaymentController {
 
     @GetMapping
     public ResponseEntity<List<PaymentDTO>> getAll(
-        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startAt,
-        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endAt) {
+        @RequestParam(required = false) LocalDate startAt,
+        @RequestParam(required = false) LocalDate endAt) {
 
         Account account = SessionContext.get();
         log.info("Getting payments between two dates: account id - {} | started at - {} | ended at - {}", account.getId(), startAt, endAt);
 
         List<PaymentDTO> payments = paymentService.findBy(account, startAt, endAt).stream()
-                .map(paymentDTOMapper)
-                .toList();
+            .map(paymentDTOMapper)
+            .toList();
 
         return ResponseEntity.status(HttpStatus.OK).body(payments);
     }
@@ -56,8 +55,8 @@ public class PaymentController {
 
     @PutMapping("{id}")
     public ResponseEntity<Void> update(
-            @PathVariable Long id,
-            @RequestBody PaymentEditionRequestDTO request) {
+        @PathVariable Long id,
+        @RequestBody PaymentEditionRequestDTO request) {
 
         Account account = SessionContext.get();
         log.info("Updating payment: account id - {} | payment id - {} | type - {}", account.getId(), id, request.getType());
