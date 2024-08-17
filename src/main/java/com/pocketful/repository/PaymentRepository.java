@@ -12,19 +12,29 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
-    List<Payment> findAllByDeadlineAtLessThanEqualAndPayedIsFalseAndIsExpenseIsTrue(LocalDate date);
 
-    List<Payment> findAllByAccountAndDeadlineAtBetweenOrderByCreatedAtAsc(
+    @Query("SELECT payment " +
+        "FROM Payment payment " +
+        "WHERE payment.deadlineAt <= :date " +
+        "AND payment.payed = false " +
+        "AND payment.isExpense = true")
+    List<Payment> findPendingBetweenNowAndDate(LocalDate date);
+
+    @Query("SELECT payment " +
+        "FROM Payment payment " +
+        "WHERE payment.deadlineAt >= :startAt " +
+        "AND payment.deadlineAt <= :endAt " +
+        "AND payment.account = :account")
+    List<Payment> findByDeadlineAtBetween(
         Account account,
         LocalDate startAt,
-        LocalDate endAt
-    );
+        LocalDate endAt);
 
-    @Query("SELECT * " +
-            "FROM payments " +
-            "WHERE deadline_at >= :date " +
-            "AND account_id = :accountId")
-    List<Payment> findByAccountFromDeadline(Long accountId, LocalDate date);
+    @Query("SELECT payment " +
+            "FROM Payment payment " +
+            "WHERE payment.deadlineAt >= :date " +
+            "AND payment.account.id = :accountId")
+    List<Payment> findByDeadlineAtGreaterThanOrEqual(Long accountId, LocalDate date);
 
     List<Payment> findAllByPaymentFrequency(PaymentFrequency paymentFrequency);
 
@@ -32,13 +42,13 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     @Modifying
     @Transactional
-    @Query("DELETE FROM payments " +
-            "WHERE payment_frequency_id = :frequencyId " +
-            "AND account_id = :accountId " +
-            "AND deadlineAt = :deadlineAt")
-    void deleteCurrentAndFutureByAccount(PaymentFrequency paymentFrequency,
-                                         Account account,
-                                         LocalDate date);
+    @Query("DELETE FROM Payment " +
+            "WHERE paymentFrequency.id = :frequencyId " +
+            "AND account.id = :accountId " +
+            "AND deadlineAt >= :deadlineAt")
+    void deleteByDeadlineAtBetweenPresentAndFuture(Long frequencyId,
+                                                   Long accountId,
+                                                   LocalDate deadlineAt);
 
     void deleteAllByPaymentFrequency(PaymentFrequency paymentFrequency);
 }

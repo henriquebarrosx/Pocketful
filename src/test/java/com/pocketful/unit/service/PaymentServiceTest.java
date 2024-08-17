@@ -65,7 +65,7 @@ public class PaymentServiceTest {
 
         Assertions.assertEquals(payments.size(), 0);
         Mockito.verify(paymentRepository, Mockito.times(1))
-                .findAllByAccountAndDeadlineAtBetweenOrderByCreatedAtAsc(account, LocalDate.MIN, LocalDate.MAX);
+                .findByDeadlineAtBetween(account, LocalDate.MIN, LocalDate.MAX);
     }
 
     @Test
@@ -79,7 +79,7 @@ public class PaymentServiceTest {
 
         Assertions.assertEquals(payments.size(), 0);
         Mockito.verify(paymentRepository, Mockito.times(1))
-                .findAllByAccountAndDeadlineAtBetweenOrderByCreatedAtAsc(account, startAt, endAt);
+                .findByDeadlineAtBetween(account, startAt, endAt);
     }
 
     @Test
@@ -324,7 +324,7 @@ public class PaymentServiceTest {
                 .delete(deleteArgCaptor.capture());
 
         Mockito.verify(paymentRepository, Mockito.times(0))
-                .deleteCurrentAndFutureByAccount(ArgumentMatchers.any(PaymentFrequency.class), ArgumentMatchers.any(Account.class), ArgumentMatchers.any(LocalDate.class));
+                .deleteByDeadlineAtBetweenPresentAndFuture(ArgumentMatchers.any(Long.class), ArgumentMatchers.any(Long.class), ArgumentMatchers.any(LocalDate.class));
 
         Mockito.verify(paymentRepository, Mockito.times(0))
                 .deleteAllByPaymentFrequency(ArgumentMatchers.any(PaymentFrequency.class));
@@ -339,8 +339,8 @@ public class PaymentServiceTest {
         PaymentCategory category = PaymentCategoryBuilder.build();
         PaymentFrequency frequency = PaymentFrequencyBuilder.build();
         Payment payment = PaymentBuilder.build(account, category, frequency);
-        var frequencyArgCaptor = ArgumentCaptor.forClass(PaymentFrequency.class);
-        var accountArgCaptor = ArgumentCaptor.forClass(Account.class);
+        var frequencyArgCaptor = ArgumentCaptor.forClass(Long.class);
+        var accountArgCaptor = ArgumentCaptor.forClass(Long.class);
         var deadlineArgCaptor = ArgumentCaptor.forClass(LocalDate.class);
 
         Mockito.when(paymentRepository.findById(ArgumentMatchers.anyLong()))
@@ -355,7 +355,7 @@ public class PaymentServiceTest {
                 .deleteAllByPaymentFrequency(ArgumentMatchers.any(PaymentFrequency.class));
 
         Mockito.verify(paymentRepository, Mockito.times(1))
-                .deleteCurrentAndFutureByAccount(frequencyArgCaptor.capture(), accountArgCaptor.capture(), deadlineArgCaptor.capture());
+                .deleteByDeadlineAtBetweenPresentAndFuture(frequencyArgCaptor.capture(), accountArgCaptor.capture(), deadlineArgCaptor.capture());
 
         Assertions.assertEquals(frequency.toString(), frequencyArgCaptor.getValue().toString());
         Assertions.assertEquals(account.toString(), accountArgCaptor.getValue().toString());
@@ -380,7 +380,7 @@ public class PaymentServiceTest {
                 .delete(ArgumentMatchers.any(Payment.class));
 
         Mockito.verify(paymentRepository, Mockito.times(0))
-                .deleteCurrentAndFutureByAccount(ArgumentMatchers.any(PaymentFrequency.class), ArgumentMatchers.any(Account.class), ArgumentMatchers.any(LocalDate.class));
+                .deleteByDeadlineAtBetweenPresentAndFuture(ArgumentMatchers.any(Long.class), ArgumentMatchers.any(Long.class), ArgumentMatchers.any(LocalDate.class));
 
         Mockito.verify(paymentRepository, Mockito.times(1))
                 .deleteAllByPaymentFrequency(frequencyArgCaptor.capture());
@@ -454,7 +454,7 @@ public class PaymentServiceTest {
         Payment paymentFromFuture1 = PaymentBuilder.build(2L, LocalDate.of(2024, 6, 24), account, category, frequency);
         Payment paymentFromFuture2 = PaymentBuilder.build(3L, LocalDate.of(2024, 7, 15), account, category, frequency);
 
-        Mockito.when(paymentRepository.findByAccountFromDeadline(ArgumentMatchers.anyLong(), ArgumentMatchers.any(LocalDate.class)))
+        Mockito.when(paymentRepository.findByDeadlineAtGreaterThanOrEqual(ArgumentMatchers.anyLong(), ArgumentMatchers.any(LocalDate.class)))
                 .thenReturn(List.of(paymentFromFuture1, paymentFromFuture2));
 
         paymentService.processPaymentEdition(targetPayment, PaymentSelectionOption.THIS_AND_FUTURE_PAYMENTS);

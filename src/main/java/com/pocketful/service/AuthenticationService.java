@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Service
 public class AuthenticationService {
-    private final AccountService accountService;
     private final AuthenticationManager authenticationManager;
     private final SessionManagerService sessionManagerService;
 
