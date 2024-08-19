@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -45,7 +46,7 @@ public class PaymentController {
 
     @PostMapping
     public ResponseEntity<PaymentIdDTO> create(
-        @RequestBody PaymentCreationRequestDTO request) {
+        @RequestBody @Validated PaymentCreationRequestDTO request) {
 
         Account account = SessionContext.get();
         log.info("Creating payment: account id - {} | description - {} | amount - {} | category id - {}", account.getId(), request.getDescription(), request.getAmount(), request.getPaymentCategoryId());
@@ -56,7 +57,7 @@ public class PaymentController {
     @PutMapping("{id}")
     public ResponseEntity<Void> update(
         @PathVariable Long id,
-        @RequestBody PaymentEditionRequestDTO request) {
+        @RequestBody @Validated PaymentEditionRequestDTO request) {
 
         Account account = SessionContext.get();
         log.info("Updating payment: account id - {} | payment id - {} | type - {}", account.getId(), id, request.getType());

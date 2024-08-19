@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -26,14 +27,14 @@ public class AuthController {
     private final AuthenticationService authenticationService;
 
     @PostMapping("sign-in")
-    ResponseEntity<AuthenticatedAccountDTO> signIn(@RequestBody SignInRequestDTO request) {
+    ResponseEntity<AuthenticatedAccountDTO> signIn(@RequestBody @Validated SignInRequestDTO request) {
         log.info("Authenticating account by email - {}", request.email());
         AuthenticatedAccountDTO account = authenticationService.authenticate(request.email(), request.password());
         return ResponseEntity.status(HttpStatus.OK).body(account);
     }
 
     @PostMapping("sign-up")
-    ResponseEntity<AccountIdDTO> signUp(@RequestBody SignUpRequestDTO request) {
+    ResponseEntity<AccountIdDTO> signUp(@RequestBody @Validated SignUpRequestDTO request) {
         log.info("Creating account: name - {} | email - {}", request.getName(), request.getEmail());
         Account account = accountService.create(request.getName(), request.getEmail(),  request.getPassword());
         AccountIdDTO accountId = new AccountIdDTO(account.getId());

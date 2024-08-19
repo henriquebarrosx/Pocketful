@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -39,7 +40,7 @@ public class PaymentCategoryController {
     }
 
     @PostMapping
-    public ResponseEntity<PaymentCategoryDTO> create(@RequestBody PaymentCategoryCreationRequestDTO request) {
+    public ResponseEntity<PaymentCategoryDTO> create(@RequestBody @Validated PaymentCategoryCreationRequestDTO request) {
         log.info("Creating payment category: name - {}", request.getName());
         PaymentCategory category = paymentCategoriesService.create(request.getName());
         return ResponseEntity.status(HttpStatus.CREATED).body(PaymentCategoryDTOMapper.apply(category));
@@ -48,7 +49,7 @@ public class PaymentCategoryController {
     @PutMapping("{id}")
     public ResponseEntity<PaymentCategoryDTO> update(
             @PathVariable Long id,
-            @RequestBody PaymentCategoryCreationRequestDTO request
+            @RequestBody @Validated PaymentCategoryCreationRequestDTO request
     ) {
         log.info("Updating payment category: id - {} | name - {}", id, request.getName());
         PaymentCategory category = paymentCategoriesService.update(id, request.getName());

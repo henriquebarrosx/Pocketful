@@ -357,8 +357,8 @@ public class PaymentServiceTest {
         Mockito.verify(paymentRepository, Mockito.times(1))
                 .deleteByDeadlineAtBetweenPresentAndFuture(frequencyArgCaptor.capture(), accountArgCaptor.capture(), deadlineArgCaptor.capture());
 
-        Assertions.assertEquals(frequency.toString(), frequencyArgCaptor.getValue().toString());
-        Assertions.assertEquals(account.toString(), accountArgCaptor.getValue().toString());
+        Assertions.assertEquals(frequency.getId(), frequencyArgCaptor.getValue());
+        Assertions.assertEquals(account.getId(), accountArgCaptor.getValue());
         Assertions.assertEquals(payment.getDeadlineAt(), deadlineArgCaptor.getValue());
     }
 
