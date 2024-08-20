@@ -13,6 +13,7 @@ import com.pocketful.web.dto.exception.ExceptionDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -77,6 +78,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ExceptionDTO> handleInvalidCredentialsException(Exception exception) {
         ExceptionDTO exceptionDTO = new ExceptionDTO(exception.getMessage());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(exceptionDTO);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ExceptionDTO> handleAuthenticationException(Exception exception) {
+        ExceptionDTO exceptionDTO = new ExceptionDTO(exception.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(exceptionDTO);
     }
 
     @ExceptionHandler(Exception.class)
