@@ -17,7 +17,7 @@ public class PaymentFrequencyService {
 
     public PaymentFrequency findById(Long id) {
         return paymentFrequencyRepository.findById(id)
-                .orElseThrow(() -> new PaymentFrequencyNotFoundException(id));
+                .orElseThrow(PaymentFrequencyNotFoundException::new);
     }
 
     public PaymentFrequency create(boolean isIndeterminate, int times) {

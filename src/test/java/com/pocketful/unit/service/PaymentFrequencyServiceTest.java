@@ -31,7 +31,7 @@ public class PaymentFrequencyServiceTest {
         Exception exception = Assertions.assertThrows(PaymentFrequencyNotFoundException.class,
                 () -> service.findById(frequency.getId()));
 
-        Assertions.assertEquals(String.format("Payment Frequency by id %s not found", frequency.getId()), exception.getMessage());
+        Assertions.assertEquals("Payment Frequency not found", exception.getMessage());
     }
 
     @Test
@@ -92,7 +92,7 @@ public class PaymentFrequencyServiceTest {
         Exception exception = Assertions.assertThrows(PaymentFrequencyNotFoundException.class,
                 () -> service.deleteById(id));
 
-        Assertions.assertEquals(String.format("Payment Frequency by id %s not found", id), exception.getMessage());
+        Assertions.assertEquals("Payment Frequency not found", exception.getMessage());
     }
 
     @Test
