@@ -45,6 +45,12 @@ spring:
 security:
   token: ${JWT_SECRET}
 
+rabbitmq:
+  host: ${RABBITMQ_HOST}
+  port: ${RABBITMQ_PORT}
+  username: ${RABBITMQ_USERNAME}
+  password: ${RABBITMQ_PASSWORD}
+
 queue:
   payments_generation_queue: ${PAYMENTS_GENERATION_QUEUE}
   payments_edition_queue: ${PAYMENTS_EDITION_QUEUE}
