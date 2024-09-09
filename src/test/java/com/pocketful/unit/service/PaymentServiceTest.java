@@ -107,13 +107,13 @@ public class PaymentServiceTest {
         Account account = AccountBuilder.build();
         var request = PaymentCreationRequestDTO.builder().paymentCategoryId(1L).build();
 
-        Mockito.doThrow(new PaymentCategoryNotFoundException(request.getPaymentCategoryId()))
+        Mockito.doThrow(new PaymentCategoryNotFoundException())
                 .when(paymentCategoryService).findById(request.getPaymentCategoryId());
 
         Exception exception = Assertions.assertThrows(PaymentCategoryNotFoundException.class,
                 () -> paymentService.create(account, request));
 
-        Assertions.assertEquals(String.format("Payment Category by id %s not found", request.getPaymentCategoryId()), exception.getMessage());
+        Assertions.assertEquals("Payment Category not found", exception.getMessage());
     }
 
     @Test
@@ -216,13 +216,13 @@ public class PaymentServiceTest {
 
         Mockito.when(paymentRepository.findById(ArgumentMatchers.anyLong()))
                 .thenReturn(Optional.of(payment));
-        Mockito.doThrow(new PaymentCategoryNotFoundException(request.getPaymentCategoryId()))
+        Mockito.doThrow(new PaymentCategoryNotFoundException())
                 .when(paymentCategoryService).findById(request.getPaymentCategoryId());
 
         Exception exception = Assertions.assertThrows(PaymentCategoryNotFoundException.class,
                 () -> paymentService.update(account, payment.getId(), request));
 
-        Assertions.assertEquals(String.format("Payment Category by id %s not found", request.getPaymentCategoryId()), exception.getMessage());
+        Assertions.assertEquals("Payment Category not found", exception.getMessage());
     }
 
     @Test

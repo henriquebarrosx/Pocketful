@@ -42,7 +42,7 @@ public class PaymentCategoryServiceTest {
 
         Exception exception = Assertions.assertThrows(PaymentCategoryAlreadyExistException.class, () -> service.create(name));
 
-        Assertions.assertEquals(String.format("Payment category %s already exists.", name), exception.getMessage());
+        Assertions.assertEquals("Payment category already registered", exception.getMessage());
     }
 
     @Test
@@ -69,7 +69,7 @@ public class PaymentCategoryServiceTest {
         Exception exception = Assertions.assertThrows(PaymentCategoryNotFoundException.class,
                 () -> service.update(category.getId(), name));
 
-        Assertions.assertEquals(String.format("Payment Category by id %s not found", category.getId()), exception.getMessage());
+        Assertions.assertEquals("Payment Category not found", exception.getMessage());
     }
 
     @Test
@@ -83,7 +83,7 @@ public class PaymentCategoryServiceTest {
         Exception exception = Assertions.assertThrows(PaymentCategoryAlreadyExistException.class,
                 () -> service.update(category.getId(), name));
 
-        Assertions.assertEquals(String.format("Payment category %s already exists.", name), exception.getMessage());
+        Assertions.assertEquals("Payment category already registered", exception.getMessage());
     }
 
     @Test
@@ -110,7 +110,7 @@ public class PaymentCategoryServiceTest {
         Exception exception = Assertions.assertThrows(PaymentCategoryNotFoundException.class,
                 () -> service.delete(category.getId()));
 
-        Assertions.assertEquals(String.format("Payment Category by id %s not found", category.getId()), exception.getMessage());
+        Assertions.assertEquals("Payment Category not found", exception.getMessage());
     }
 
     @Test
@@ -132,7 +132,7 @@ public class PaymentCategoryServiceTest {
         Exception exception = Assertions.assertThrows(PaymentCategoryNotFoundException.class,
                 () -> service.findById(category.getId()));
 
-        Assertions.assertEquals(String.format("Payment Category by id %s not found", category.getId()), exception.getMessage());
+        Assertions.assertEquals("Payment Category not found", exception.getMessage());
     }
 
     @Test

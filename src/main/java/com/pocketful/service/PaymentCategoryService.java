@@ -22,7 +22,7 @@ public class PaymentCategoryService {
 
     public PaymentCategory create(String name) {
         if (paymentCategoryRepository.existsPaymentCategoryByName(name)) {
-            throw new PaymentCategoryAlreadyExistException(name);
+            throw new PaymentCategoryAlreadyExistException();
         }
 
         PaymentCategory category = PaymentCategory.builder().name(name).build();
@@ -33,7 +33,7 @@ public class PaymentCategoryService {
         PaymentCategory paymentCategory = findById(id);
 
         if (paymentCategoryRepository.existsPaymentCategoryByName(name)) {
-            throw new PaymentCategoryAlreadyExistException(name);
+            throw new PaymentCategoryAlreadyExistException();
         }
 
         paymentCategory.setName(name);
@@ -47,6 +47,6 @@ public class PaymentCategoryService {
 
     public PaymentCategory findById(Long id) {
         return paymentCategoryRepository.findById(id)
-                .orElseThrow(() -> new PaymentCategoryNotFoundException(id));
+                .orElseThrow(PaymentCategoryNotFoundException::new);
     }
 }
