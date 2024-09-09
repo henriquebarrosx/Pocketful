@@ -89,7 +89,7 @@ public class PaymentServiceTest {
 
         Exception exception = Assertions.assertThrows(PaymentNotFoundException.class, () -> paymentService.findById(id));
 
-        Assertions.assertEquals(String.format("Payment by id %s not found", id), exception.getMessage());
+        Assertions.assertEquals("Payment not found", exception.getMessage());
     }
 
     @Test
@@ -186,7 +186,7 @@ public class PaymentServiceTest {
         Exception exception = Assertions.assertThrows(PaymentNotFoundException.class,
                 () -> paymentService.update(account, payment.getId(), request));
 
-        Assertions.assertEquals(String.format("Payment by id %s not found", payment.getId()), exception.getMessage());
+        Assertions.assertEquals("Payment not found", exception.getMessage());
     }
 
     @Test
@@ -203,7 +203,7 @@ public class PaymentServiceTest {
         Exception exception = Assertions.assertThrows(PaymentNotFoundException.class,
                 () -> paymentService.update(accountFromRequest, payment.getId(), request));
 
-        Assertions.assertEquals(String.format("Payment by id %s not found", payment.getId()), exception.getMessage());
+        Assertions.assertEquals("Payment not found", exception.getMessage());
     }
 
     @Test
@@ -283,7 +283,7 @@ public class PaymentServiceTest {
         Exception exception = Assertions.assertThrows(PaymentNotFoundException.class,
                 () -> paymentService.delete(account, paymentId, PaymentSelectionOption.THIS_PAYMENT));
 
-        Assertions.assertEquals(String.format("Payment by id %s not found", paymentId), exception.getMessage());
+        Assertions.assertEquals("Payment not found", exception.getMessage());
     }
 
     @Test
@@ -300,7 +300,7 @@ public class PaymentServiceTest {
         Exception exception = Assertions.assertThrows(PaymentNotFoundException.class,
                 () -> paymentService.delete(accountFromRequest, paymentId, PaymentSelectionOption.THIS_PAYMENT));
 
-        Assertions.assertEquals(String.format("Payment by id %s not found", paymentId), exception.getMessage());
+        Assertions.assertEquals("Payment not found", exception.getMessage());
     }
 
     @Test

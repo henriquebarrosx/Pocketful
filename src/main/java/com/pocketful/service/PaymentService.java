@@ -45,7 +45,7 @@ public class PaymentService {
 
     public Payment findById(Long id) {
         return paymentRepository.findById(id)
-                .orElseThrow(() -> new PaymentNotFoundException(id));
+                .orElseThrow(PaymentNotFoundException::new);
     }
 
     public Payment create(Account account, PaymentCreationRequestDTO paymentParams) {
@@ -85,7 +85,7 @@ public class PaymentService {
         Payment payment = findById(id);
 
         if (Boolean.FALSE.equals(payment.getAccount().getId().equals(account.getId()))) {
-            throw new PaymentNotFoundException(id);
+            throw new PaymentNotFoundException();
         }
 
         PaymentCategory paymentCategory = paymentCategoryService
@@ -112,7 +112,7 @@ public class PaymentService {
         Payment payment = findById(id);
 
         if (Boolean.FALSE.equals(payment.getAccount().getId().equals(account.getId()))) {
-            throw new PaymentNotFoundException(id);
+            throw new PaymentNotFoundException();
         }
 
         switch (type) {
