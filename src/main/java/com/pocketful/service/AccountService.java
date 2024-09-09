@@ -26,7 +26,7 @@ public class AccountService {
         }
 
         if (accountRepository.existsByEmail(email)) {
-            throw new AccountEmailAlreadyRegisteredException(email);
+            throw new AccountEmailAlreadyRegisteredException();
         }
 
         return accountRepository.save(

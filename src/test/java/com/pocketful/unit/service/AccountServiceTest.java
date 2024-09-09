@@ -54,7 +54,7 @@ public class AccountServiceTest {
                 () -> accountService.create(name, email, password)
         );
 
-        Assertions.assertEquals(String.format("Account email %s already exists.", email), exception.getMessage());
+        Assertions.assertEquals("Account email already registered", exception.getMessage());
     }
 
     @Test
@@ -83,7 +83,7 @@ public class AccountServiceTest {
                 () -> accountService.findById(id)
         );
 
-        Assertions.assertEquals(String.format("Account by id %s not found", id), exception.getMessage());
+        Assertions.assertEquals("Account not found", exception.getMessage());
     }
 
     @Test
@@ -109,7 +109,7 @@ public class AccountServiceTest {
                 () -> accountService.findByEmail(email)
         );
 
-        Assertions.assertEquals(String.format("Account by email %s not found", email), exception.getMessage());
+        Assertions.assertEquals("Account not found", exception.getMessage());
     }
 
     @Test
