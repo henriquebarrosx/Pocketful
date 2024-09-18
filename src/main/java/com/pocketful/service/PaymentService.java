@@ -48,6 +48,16 @@ public class PaymentService {
                 .orElseThrow(PaymentNotFoundException::new);
     }
 
+    public Payment findById(Long id, Account account) {
+        Payment payment = this.findById(id);
+
+        if (payment.getAccount().getId().equals(account.getId())) {
+            return payment;
+        }
+
+        throw new PaymentNotFoundException();
+    }
+
     public Payment create(Account account, PaymentCreationRequestDTO paymentParams) {
         PaymentCategory paymentCategory = paymentCategoryService
                 .findById(paymentParams.getPaymentCategoryId());
@@ -108,14 +118,14 @@ public class PaymentService {
     }
 
     @Transactional
-    public void delete(Account account, Long id, PaymentSelectionOption type) {
+    public void delete(Account account, Long id, String type) {
         Payment payment = findById(id);
 
         if (Boolean.FALSE.equals(payment.getAccount().getId().equals(account.getId()))) {
             throw new PaymentNotFoundException();
         }
 
-        switch (type) {
+        switch (PaymentSelectionOption.fromInt(Integer.parseInt(type))) {
             case THIS_PAYMENT -> {
                 paymentRepository.delete(payment);
             }

@@ -44,6 +44,15 @@ public class PaymentController {
         return ResponseEntity.status(HttpStatus.OK).body(payments);
     }
 
+    @GetMapping("{id}")
+    public ResponseEntity<PaymentDTO> get(@PathVariable Long id) {
+        Account account = SessionContext.get();
+        log.info("getting payment by id: account id - {} | payment id - {}", account.getId(), id);
+
+        Payment payment = paymentService.findById(id, account);
+        return ResponseEntity.status(HttpStatus.OK).body(paymentDTOMapper.apply(payment));
+    }
+
     @PostMapping
     public ResponseEntity<PaymentIdDTO> create(
         @RequestBody @Validated PaymentCreationRequestDTO request) {
@@ -69,7 +78,7 @@ public class PaymentController {
     @DeleteMapping("{id}")
     public ResponseEntity<Void> delete(
         @PathVariable Long id,
-        @RequestParam PaymentSelectionOption type) {
+        @RequestParam String type) {
 
         Account account = SessionContext.get();
         log.info("Deleting payment by account: account id - {} | type - {}", account, type);
