@@ -281,7 +281,7 @@ public class PaymentServiceTest {
         Mockito.when(paymentRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.empty());
 
         Exception exception = Assertions.assertThrows(PaymentNotFoundException.class,
-                () -> paymentService.delete(account, paymentId, PaymentSelectionOption.THIS_PAYMENT));
+                () -> paymentService.delete(account, paymentId, String.valueOf(PaymentSelectionOption.THIS_PAYMENT)));
 
         Assertions.assertEquals("Payment not found", exception.getMessage());
     }
@@ -298,7 +298,7 @@ public class PaymentServiceTest {
         Mockito.when(paymentRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(payment));
 
         Exception exception = Assertions.assertThrows(PaymentNotFoundException.class,
-                () -> paymentService.delete(accountFromRequest, paymentId, PaymentSelectionOption.THIS_PAYMENT));
+                () -> paymentService.delete(accountFromRequest, paymentId, String.valueOf(PaymentSelectionOption.THIS_PAYMENT)));
 
         Assertions.assertEquals("Payment not found", exception.getMessage());
     }
@@ -318,7 +318,7 @@ public class PaymentServiceTest {
         Mockito.doNothing().when(paymentRepository)
                 .delete(ArgumentMatchers.any(Payment.class));
 
-        paymentService.delete(account, paymentId, PaymentSelectionOption.THIS_PAYMENT);
+        paymentService.delete(account, paymentId, String.valueOf(PaymentSelectionOption.THIS_PAYMENT));
 
         Mockito.verify(paymentRepository, Mockito.times(1))
                 .delete(deleteArgCaptor.capture());
@@ -346,7 +346,7 @@ public class PaymentServiceTest {
         Mockito.when(paymentRepository.findById(ArgumentMatchers.anyLong()))
                 .thenReturn(Optional.of(payment));
 
-        paymentService.delete(account, paymentId, PaymentSelectionOption.THIS_AND_FUTURE_PAYMENTS);
+        paymentService.delete(account, paymentId, String.valueOf(PaymentSelectionOption.THIS_AND_FUTURE_PAYMENTS));
 
         Mockito.verify(paymentRepository, Mockito.times(0))
                 .delete(ArgumentMatchers.any(Payment.class));
@@ -374,7 +374,7 @@ public class PaymentServiceTest {
         Mockito.when(paymentRepository.findById(ArgumentMatchers.anyLong()))
                 .thenReturn(Optional.of(payment));
 
-        paymentService.delete(account, paymentId, PaymentSelectionOption.ALL_PAYMENTS);
+        paymentService.delete(account, paymentId, String.valueOf(PaymentSelectionOption.ALL_PAYMENTS));
 
         Mockito.verify(paymentRepository, Mockito.times(0))
                 .delete(ArgumentMatchers.any(Payment.class));

@@ -49,7 +49,7 @@ public class PaymentCategoryControllerTest {
     private SessionManagerService sessionManagerService;
 
     @Test
-    void shouldThrowExceptionWhenGettingCategoriesAndHasDefaultRole() throws Exception {
+    void shouldReturnCategoriesWhenHasDefaultRole() throws Exception {
         Account account = AccountBuilder.build(AccountRole.DEFAULT);
         String token = SessionBuilder.build(account);
 
@@ -59,7 +59,7 @@ public class PaymentCategoryControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.get("/v1/payments/categories")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(AUTHORIZATION, token))
-                .andExpect(MockMvcResultMatchers.status().isForbidden());
+                .andExpect(MockMvcResultMatchers.status().isOk());
     }
 
     @Test
@@ -81,17 +81,21 @@ public class PaymentCategoryControllerTest {
     }
 
     @Test
-    void shouldThrowExceptionWhenGettingByIdHasDefaultRole() throws Exception {
+    void shouldReturnCategoryWhenGettingByIdAndHasDefaultRole() throws Exception {
+        PaymentCategory category = PaymentCategoryBuilder.build();
         Account account = AccountBuilder.build(AccountRole.DEFAULT);
         String token = SessionBuilder.build(account);
 
         Mockito.when(accountService.findByEmail(account.getEmail()))
                 .thenReturn(account);
 
+        Mockito.when(paymentCategoryService.findById(category.getId()))
+                .thenReturn(category);
+
         mockMvc.perform(MockMvcRequestBuilders.get("/v1/payments/categories/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(AUTHORIZATION, token))
-                .andExpect(MockMvcResultMatchers.status().isForbidden());
+                .andExpect(MockMvcResultMatchers.status().isOk());
     }
 
     @Test

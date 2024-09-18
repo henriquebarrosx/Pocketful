@@ -125,7 +125,7 @@ public class PaymentService {
             throw new PaymentNotFoundException();
         }
 
-        switch (PaymentSelectionOption.fromInt(Integer.parseInt(type))) {
+        switch (PaymentSelectionOption.valueOf(type)) {
             case THIS_PAYMENT -> {
                 paymentRepository.delete(payment);
             }
