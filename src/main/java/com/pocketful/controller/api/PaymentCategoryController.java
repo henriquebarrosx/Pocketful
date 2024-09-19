@@ -1,4 +1,4 @@
-package com.pocketful.controller;
+package com.pocketful.controller.api;
 
 import com.pocketful.entity.PaymentCategory;
 import com.pocketful.service.PaymentCategoryService;

@@ -1,4 +1,4 @@
-package com.pocketful.controller;
+package com.pocketful.controller.api;
 
 import com.pocketful.entity.Account;
 import com.pocketful.service.AccountService;

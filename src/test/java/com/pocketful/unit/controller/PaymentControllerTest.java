@@ -2,7 +2,7 @@ package com.pocketful.unit.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pocketful.config.SecurityConfig;
-import com.pocketful.controller.PaymentController;
+import com.pocketful.controller.api.PaymentController;
 import com.pocketful.entity.Account;
 import com.pocketful.enums.PaymentSelectionOption;
 import com.pocketful.service.AccountService;

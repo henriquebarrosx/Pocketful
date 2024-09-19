@@ -1,8 +1,7 @@
-package com.pocketful.controller;
+package com.pocketful.controller.api;
 
 import com.pocketful.entity.Account;
 import com.pocketful.entity.Payment;
-import com.pocketful.enums.PaymentSelectionOption;
 import com.pocketful.service.PaymentService;
 import com.pocketful.util.SessionContext;
 import com.pocketful.web.dto.payment.PaymentCreationRequestDTO;
