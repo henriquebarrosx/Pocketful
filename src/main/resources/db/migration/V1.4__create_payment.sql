@@ -1,8 +1,6 @@
-CREATE SEQUENCE IF NOT EXISTS payments_seq START WITH 1 INCREMENT BY 50;
-
 CREATE TABLE IF NOT EXISTS payments
 (
-    id                      BIGINT       NOT NULL,
+    id                      BIGSERIAL    PRIMARY KEY,
     amount                  FLOAT        NOT NULL,
     description             VARCHAR(255) NOT NULL,
     payed                   BOOLEAN      NOT NULL,
@@ -13,8 +11,8 @@ CREATE TABLE IF NOT EXISTS payments
     payment_frequency_id    BIGINT       NOT NULL,
     created_at              TIMESTAMP    DEFAULT    CURRENT_TIMESTAMP,
     updated_at              TIMESTAMP    DEFAULT    CURRENT_TIMESTAMP,
-    CONSTRAINT pk_payments PRIMARY KEY (id),
-    CONSTRAINT pk_accounts FOREIGN KEY (account_id) REFERENCES accounts (id),
-    CONSTRAINT pk_payment_categories FOREIGN KEY (payment_category_id) REFERENCES payment_categories (id),
-    CONSTRAINT pk_payment_frequencies FOREIGN KEY (payment_frequency_id) REFERENCES payment_frequencies (id)
+
+    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE SET NULL,
+    FOREIGN KEY (payment_category_id) REFERENCES payment_categories(id) ON DELETE SET NULL,
+    FOREIGN KEY (payment_frequency_id) REFERENCES payment_frequencies(id) ON DELETE SET NULL
 );
