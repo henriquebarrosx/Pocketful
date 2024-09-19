@@ -7,9 +7,9 @@ services:
         shm_size: 128mb
         container_name: postgres_db
         environment:
-            POSTGRES_USER: ${DATABASE_USERNAME}
-            POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
-            POSTGRES_DB: ${DATABASE_NAME}
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+            POSTGRES_DB: pocketful_dev
         ports:
             - "5432:5432"
         volumes:
@@ -20,44 +20,13 @@ services:
         container_name: rabbitmq_server
         restart: always
         ports:
-            - "5672:5672"   # Protocol AMQP
-            - "15672:15672" # Management interface
+            - "5672:5672"
+            - "15672:15672"
         environment:
             RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME}
             RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
         volumes:
             - rabbitmq_data:/var/lib/rabbitmq
-
-    app:
-        container_name: api
-        build:
-            context: .
-            dockerfile: Dockerfile
-        ports:
-            - "8080:8080"
-        depends_on:
-            - postgres
-            - rabbitmq
-        volumes:
-            - ./app:/app
-        environment:
-            SPRING_PROFILES_ACTIVE: default
-            DATABASE_URL: ${DATABASE_URL}
-            DATABASE_USERNAME: ${DATABASE_USERNAME}
-            DATABASE_PASSWORD: ${DATABASE_PASSWORD}
-            MAIL_HOST: ${MAIL_HOST}
-            MAIL_USERNAME: ${MAIL_USERNAME}
-            MAIL_PASSWORD: ${MAIL_PASSWORD}
-            MAIL_PROTOCOL: ${MAIL_PROTOCOL}
-            MAIL_PORT: ${MAIL_PORT}
-            JWT_SECRET: ${JWT_SECRET}
-            PAYMENTS_GENERATION_QUEUE: ${PAYMENTS_GENERATION_QUEUE}
-            PAYMENTS_EDITION_QUEUE: ${PAYMENTS_EDITION_QUEUE}
-            PENDING_PAYMENT_NOTIFICATION_TIME: ${PENDING_PAYMENT_NOTIFICATION_TIME}
-            RABBITMQ_HOST: ${RABBITMQ_HOST}
-            RABBITMQ_PORT: ${RABBITMQ_PORT}
-            RABBITMQ_USERNAME: ${RABBITMQ_USERNAME}
-            RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
 
 volumes:
     pg_data:

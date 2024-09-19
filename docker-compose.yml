@@ -34,9 +34,15 @@ services:
             - rabbitmq
         volumes:
             - ./app:/app
+        deploy:
+            resources:
+                limits:
+                    memory: 512m
         environment:
             SPRING_PROFILES_ACTIVE: default
             DATABASE_URL: ${DATABASE_URL}
+            DATABASE_USERNAME: ${DATABASE_USERNAME}
+            DATABASE_PASSWORD: ${DATABASE_PASSWORD}
             MAIL_HOST: ${MAIL_HOST}
             MAIL_USERNAME: ${MAIL_USERNAME}
             MAIL_PASSWORD: ${MAIL_PASSWORD}
