@@ -18,7 +18,8 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class PaymentCategory {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "payment_categories_seq_gen")
+    @SequenceGenerator(name = "payment_categories_seq_gen", sequenceName = "payment_categories_seq", allocationSize = 1)
     private Long id;
 
     @Column(nullable = false)

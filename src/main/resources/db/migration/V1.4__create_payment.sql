@@ -1,3 +1,5 @@
+CREATE SEQUENCE payments_seq START 1;
+
 CREATE TABLE IF NOT EXISTS payments
 (
     id                      BIGSERIAL    PRIMARY KEY,

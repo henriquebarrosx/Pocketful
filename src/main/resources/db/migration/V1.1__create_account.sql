@@ -1,3 +1,5 @@
+CREATE SEQUENCE accounts_seq START 1;
+
 CREATE TABLE IF NOT EXISTS accounts
 (
     id           BIGSERIAL    PRIMARY KEY,

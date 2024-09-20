@@ -18,7 +18,8 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class PaymentFrequency {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "payment_frequencies_seq_gen")
+    @SequenceGenerator(name = "payment_frequencies_seq_gen", sequenceName = "payment_frequencies_seq", allocationSize = 1)
     private Long id;
 
     @Column

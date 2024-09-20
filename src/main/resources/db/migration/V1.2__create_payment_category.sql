@@ -1,3 +1,5 @@
+CREATE SEQUENCE payment_categories_seq START 1;
+
 CREATE TABLE IF NOT EXISTS payment_categories
 (
     id         BIGSERIAL    PRIMARY KEY,
