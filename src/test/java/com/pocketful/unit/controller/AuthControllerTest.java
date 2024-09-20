@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.pocketful.config.SecurityConfig;
-import com.pocketful.controller.api.AuthController;
+import com.pocketful.controller.AuthController;
 import com.pocketful.service.AccountService;
 import com.pocketful.service.AuthenticationService;
 import com.pocketful.utils.AccountBuilder;
