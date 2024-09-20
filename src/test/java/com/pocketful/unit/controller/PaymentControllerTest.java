@@ -7,7 +7,6 @@ import com.pocketful.entity.Account;
 import com.pocketful.enums.PaymentSelectionOption;
 import com.pocketful.service.AccountService;
 import com.pocketful.service.PaymentService;
-import com.pocketful.service.SessionManagerService;
 import com.pocketful.util.JsonWebToken;
 import com.pocketful.utils.*;
 import com.pocketful.web.dto.payment.PaymentCreationRequestDTO;
@@ -49,19 +48,6 @@ public class PaymentControllerTest {
     @MockBean
     private AccountService accountService;
 
-    @MockBean
-    private SessionManagerService sessionManagerService;
-
-    @Test
-    public void shouldThrowExceptionWhenGettingPaymentsWithoutBeenSignedIn() throws Exception {
-        String token = JsonWebToken.generate("john.doe@mail.com");
-
-        mockmvc.perform(MockMvcRequestBuilders.get("/v1/payments")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header(AUTHORIZATION, token))
-                .andExpect(MockMvcResultMatchers.status().isUnauthorized());
-    }
-
     @Test
     public void shouldReturnPaymentsFromSignedAccountWhenGettingPaymentsBeenSignedIn() throws Exception {
         Account account = AccountBuilder.build();
@@ -77,18 +63,6 @@ public class PaymentControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(AUTHORIZATION, token))
                 .andExpect(MockMvcResultMatchers.status().isOk());
-    }
-
-    @Test
-    public void shouldThrowExceptionWhenCreatingPaymentWithoutBeenSignedIn() throws Exception {
-        String token = JsonWebToken.generate("john.doe@mail.com");
-        var request = PaymentCreationRequestBuilder.build();
-
-        mockmvc.perform(MockMvcRequestBuilders.post("/v1/payments")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header(AUTHORIZATION, token)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(MockMvcResultMatchers.status().isUnauthorized());
     }
 
     @Test
@@ -108,18 +82,6 @@ public class PaymentControllerTest {
                         .header(AUTHORIZATION, token)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(MockMvcResultMatchers.status().isCreated());
-    }
-
-    @Test
-    public void shouldThrowExceptionWhenUpdatingPaymentWithoutBeenSignedIn() throws Exception {
-        String token = JsonWebToken.generate("john.doe@mail.com");
-        var request = PaymentEditionRequestBuilder.build();
-
-        mockmvc.perform(MockMvcRequestBuilders.put("/v1/payments/1")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header(AUTHORIZATION, token)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(MockMvcResultMatchers.status().isUnauthorized());
     }
 
     @Test
@@ -143,18 +105,6 @@ public class PaymentControllerTest {
                         .header(AUTHORIZATION, token)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(MockMvcResultMatchers.status().isNoContent());
-    }
-
-    @Test
-    public void shouldThrowExceptionWhenDeletingPaymentWithoutBeenSignedIn() throws Exception {
-        String token = JsonWebToken.generate("john.doe@mail.com");
-        var request = PaymentEditionRequestBuilder.build();
-
-        mockmvc.perform(MockMvcRequestBuilders.delete("/v1/payments/1")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header(AUTHORIZATION, token)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(MockMvcResultMatchers.status().isUnauthorized());
     }
 
     @Test

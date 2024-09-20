@@ -8,7 +8,6 @@ import com.pocketful.entity.AccountRole;
 import com.pocketful.entity.PaymentCategory;
 import com.pocketful.service.AccountService;
 import com.pocketful.service.PaymentCategoryService;
-import com.pocketful.service.SessionManagerService;
 import com.pocketful.utils.AccountBuilder;
 import com.pocketful.utils.PaymentCategoryBuilder;
 import com.pocketful.utils.SessionBuilder;
@@ -44,9 +43,6 @@ public class PaymentCategoryControllerTest {
 
     @MockBean
     private AccountService accountService;
-
-    @MockBean
-    private SessionManagerService sessionManagerService;
 
     @Test
     void shouldReturnCategoriesWhenHasDefaultRole() throws Exception {

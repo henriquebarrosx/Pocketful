@@ -38,8 +38,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/v1/auth/sign-in").permitAll()
                 .requestMatchers(HttpMethod.POST, "/v1/auth/sign-up").permitAll()
                 .requestMatchers(HttpMethod.POST, "/v1/payments/categories/**").hasRole("ADMIN")
-                    .requestMatchers(HttpMethod.PUT, "/v1/payments/categories/**").hasRole("ADMIN")
-                    .requestMatchers(HttpMethod.DELETE, "/v1/payments/categories/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/v1/payments/categories/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/v1/payments/categories/**").hasRole("ADMIN")
                 .anyRequest().authenticated())
             .exceptionHandling((exception) ->
                 exception

@@ -3,8 +3,6 @@ package com.pocketful.controller.api;
 import com.pocketful.entity.Account;
 import com.pocketful.service.AccountService;
 import com.pocketful.service.AuthenticationService;
-import com.pocketful.service.SessionManagerService;
-import com.pocketful.util.SessionContext;
 import com.pocketful.web.dto.account.AccountIdDTO;
 import com.pocketful.web.dto.account.AuthenticatedAccountDTO;
 import com.pocketful.web.dto.account.SignInRequestDTO;
@@ -23,7 +21,6 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AccountService accountService;
-    private final SessionManagerService sessionManagerService;
     private final AuthenticationService authenticationService;
 
     @PostMapping("sign-in")
@@ -41,11 +38,4 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body(accountId);
     }
 
-    @DeleteMapping("sign-out")
-    ResponseEntity<Void> signOut() {
-        Account account = SessionContext.get();
-        log.info("Signing out account by email - {}", account.getEmail());
-        sessionManagerService.invalidate(account.getEmail());
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-    }
 }
