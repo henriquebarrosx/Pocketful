@@ -38,8 +38,8 @@ public class PaymentService {
     private final PaymentGenerationQueueProducer paymentGenerationQueueProducer;
 
     public List<Payment> findBy(Account account, LocalDate startAt, LocalDate endAt) {
-        LocalDate from = Objects.isNull(startAt) ? LocalDate.MIN : startAt;
-        LocalDate to = Objects.isNull(endAt) ? LocalDate.MAX : endAt;
+        LocalDate from = Objects.isNull(startAt) ? LocalDate.of(1970, 11, 19) : startAt;
+        LocalDate to = Objects.isNull(endAt) ? LocalDate.of(2970, 11, 19) : endAt;
         return paymentRepository.findByDeadlineAtBetween(account, from, to);
     }
 

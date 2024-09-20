@@ -59,13 +59,16 @@ public class PaymentServiceTest {
     @Test
     void shouldReturnAllPaymentsByAccountWhenStartAndEndAtIsNotProvided() {
         Account account = AccountBuilder.build();
+        LocalDate min = LocalDate.of(1970, 11, 19);
+        LocalDate max = LocalDate.of(2970, 11, 19);
+
         Mockito.when(paymentService.findBy(account, null, null)).thenReturn(Collections.emptyList());
 
         List<Payment> payments = paymentService.findBy(account, null, null);
 
         Assertions.assertEquals(payments.size(), 0);
         Mockito.verify(paymentRepository, Mockito.times(1))
-                .findByDeadlineAtBetween(account, LocalDate.MIN, LocalDate.MAX);
+                .findByDeadlineAtBetween(account, min, max);
     }
 
     @Test
