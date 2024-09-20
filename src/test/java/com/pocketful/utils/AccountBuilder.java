@@ -1,7 +1,7 @@
 package com.pocketful.utils;
 
 import com.pocketful.entity.Account;
-import com.pocketful.entity.AccountRole;
+import com.pocketful.enums.AccountRole;
 
 import java.time.LocalDateTime;
 

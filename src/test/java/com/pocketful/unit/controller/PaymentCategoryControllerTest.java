@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pocketful.config.SecurityConfig;
 import com.pocketful.controller.PaymentCategoryController;
 import com.pocketful.entity.Account;
-import com.pocketful.entity.AccountRole;
+import com.pocketful.enums.AccountRole;
 import com.pocketful.entity.PaymentCategory;
 import com.pocketful.service.AccountService;
 import com.pocketful.service.PaymentCategoryService;

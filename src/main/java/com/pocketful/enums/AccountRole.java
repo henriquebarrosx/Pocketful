@@ -1,4 +1,4 @@
-package com.pocketful.entity;
+package com.pocketful.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

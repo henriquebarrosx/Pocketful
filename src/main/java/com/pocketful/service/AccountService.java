@@ -1,7 +1,7 @@
 package com.pocketful.service;
 
 import com.pocketful.entity.Account;
-import com.pocketful.entity.AccountRole;
+import com.pocketful.enums.AccountRole;
 import com.pocketful.exception.Account.AccountEmailAlreadyRegisteredException;
 import com.pocketful.exception.Account.AccountNotFoundException;
 import com.pocketful.exception.Account.InvalidAccountEmailFormatException;

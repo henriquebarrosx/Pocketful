@@ -1,6 +1,6 @@
 package com.pocketful.utils;
 
-import com.pocketful.entity.AccountRole;
+import com.pocketful.enums.AccountRole;
 import com.pocketful.web.dto.account.AuthenticatedAccountDTO;
 
 public class SignInResponseBuilder {

@@ -1,5 +1,6 @@
 package com.pocketful.entity;
 
+import com.pocketful.enums.AccountRole;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

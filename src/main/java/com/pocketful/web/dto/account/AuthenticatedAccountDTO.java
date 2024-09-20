@@ -1,6 +1,6 @@
 package com.pocketful.web.dto.account;
 
-import com.pocketful.entity.AccountRole;
+import com.pocketful.enums.AccountRole;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
