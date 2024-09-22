@@ -25,14 +25,14 @@ public class AuthController {
 
     @PostMapping("sign-in")
     ResponseEntity<AuthenticatedAccountDTO> signIn(@RequestBody @Validated SignInRequestDTO request) {
-        log.info("Authenticating account by email - {}", request.email());
+        log.info("Authenticating - email {}", request.email());
         AuthenticatedAccountDTO account = authenticationService.authenticate(request.email(), request.password());
         return ResponseEntity.status(HttpStatus.OK).body(account);
     }
 
     @PostMapping("sign-up")
     ResponseEntity<AccountIdDTO> signUp(@RequestBody @Validated SignUpRequestDTO request) {
-        log.info("Creating account: name - {} | email - {}", request.getName(), request.getEmail());
+        log.info("Creating new account: name - {} | email - {}", request.getName(), request.getEmail());
         Account account = accountService.create(request.getName(), request.getEmail(),  request.getPassword());
         AccountIdDTO accountId = new AccountIdDTO(account.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(accountId);
