@@ -1,13 +1,11 @@
 package com.pocketful.web.dto.payment;
 
 import com.pocketful.web.dto.payment_category.PaymentCategoryDTO;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
 
 import java.math.BigDecimal;
 
-@Getter
+@Data
 @Builder
 @AllArgsConstructor
 public class PaymentDTO {

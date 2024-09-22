@@ -118,14 +118,14 @@ public class PaymentService {
     }
 
     @Transactional
-    public void delete(Account account, Long id, String type) {
+    public void delete(Account account, Long id, PaymentSelectionOption type) {
         Payment payment = findById(id);
 
         if (Boolean.FALSE.equals(payment.getAccount().getId().equals(account.getId()))) {
             throw new PaymentNotFoundException();
         }
 
-        switch (PaymentSelectionOption.valueOf(type)) {
+        switch (type) {
             case THIS_PAYMENT -> {
                 paymentRepository.delete(payment);
             }

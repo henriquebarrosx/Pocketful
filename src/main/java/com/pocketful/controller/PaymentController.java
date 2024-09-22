@@ -2,12 +2,10 @@ package com.pocketful.controller;
 
 import com.pocketful.entity.Account;
 import com.pocketful.entity.Payment;
+import com.pocketful.enums.PaymentSelectionOption;
 import com.pocketful.service.PaymentService;
 import com.pocketful.util.SessionContext;
-import com.pocketful.web.dto.payment.PaymentCreationRequestDTO;
-import com.pocketful.web.dto.payment.PaymentDTO;
-import com.pocketful.web.dto.payment.PaymentEditionRequestDTO;
-import com.pocketful.web.dto.payment.PaymentIdDTO;
+import com.pocketful.web.dto.payment.*;
 import com.pocketful.web.mapper.PaymentDTOMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -77,11 +75,11 @@ public class PaymentController {
     @DeleteMapping("{id}")
     public ResponseEntity<Void> delete(
         @PathVariable Long id,
-        @RequestParam String type) {
+        @RequestBody @Validated PaymentDeletionRequestDTO request) {
 
         Account account = SessionContext.get();
-        log.info("Deleting payment by account: account id - {} | type - {}", account, type);
-        paymentService.delete(account, id, type);
+        log.info("Deleting payment by account: account id - {} | type - {}", account, request.getType());
+        paymentService.delete(account, id, request.getType());
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
