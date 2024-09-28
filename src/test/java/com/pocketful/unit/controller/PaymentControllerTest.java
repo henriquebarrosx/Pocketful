@@ -8,6 +8,7 @@ import com.pocketful.entity.PaymentCategory;
 import com.pocketful.entity.PaymentFrequency;
 import com.pocketful.enums.PaymentSelectionOption;
 import com.pocketful.exception.Payment.PaymentNotFoundException;
+import com.pocketful.mapper.PaymentCategoryMapper;
 import com.pocketful.service.AccountService;
 import com.pocketful.service.PaymentService;
 import com.pocketful.utils.AccountBuilder;
@@ -20,7 +21,7 @@ import com.pocketful.utils.SessionBuilder;
 import com.pocketful.web.dto.payment.PaymentCreationRequestDTO;
 import com.pocketful.web.dto.payment.PaymentDeletionRequestDTO;
 import com.pocketful.web.dto.payment.PaymentEditionRequestDTO;
-import com.pocketful.web.mapper.PaymentDTOMapper;
+import com.pocketful.mapper.PaymentMapper;
 
 import org.junit.jupiter.api.Test;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -44,7 +45,7 @@ import java.util.List;
 
 import static com.pocketful.config.SecurityFilterConfig.AUTHORIZATION;
 
-@Import({SecurityConfig.class, PaymentDTOMapper.class})
+@Import({SecurityConfig.class, PaymentMapper.class, PaymentCategoryMapper.class})
 @WebMvcTest(PaymentController.class)
 public class PaymentControllerTest {
 

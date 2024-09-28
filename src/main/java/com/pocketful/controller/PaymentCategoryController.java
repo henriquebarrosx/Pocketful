@@ -6,7 +6,7 @@ import com.pocketful.service.PaymentCategoryService;
 import com.pocketful.util.SessionContext;
 import com.pocketful.web.dto.payment_category.PaymentCategoryCreationRequestDTO;
 import com.pocketful.web.dto.payment_category.PaymentCategoryDTO;
-import com.pocketful.web.mapper.PaymentCategoryDTOMapper;
+import com.pocketful.mapper.PaymentCategoryMapper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -22,6 +22,7 @@ import java.util.List;
 @RestController
 public class PaymentCategoryController {
     private final PaymentCategoryService paymentCategoriesService;
+    private final PaymentCategoryMapper paymentCategoryMapper;
 
     @GetMapping
     public ResponseEntity<List<PaymentCategoryDTO>> getAll() {
@@ -29,7 +30,7 @@ public class PaymentCategoryController {
         log.info("Getting payments categories: account id - {}", account.getId());
 
         List<PaymentCategoryDTO> categories = paymentCategoriesService.findAll().stream()
-                .map(PaymentCategoryDTOMapper::apply)
+                .map(paymentCategoryMapper::toDTO)
                 .toList();
 
         return ResponseEntity.status(HttpStatus.OK).body(categories);
@@ -41,7 +42,7 @@ public class PaymentCategoryController {
         log.info("Getting payment category by id: account id - {} | id = {}", id, account.getId());
 
         PaymentCategory category = paymentCategoriesService.findById(id);
-        return ResponseEntity.status(HttpStatus.OK).body(PaymentCategoryDTOMapper.apply(category));
+        return ResponseEntity.status(HttpStatus.OK).body(paymentCategoryMapper.toDTO(category));
     }
 
     @PostMapping
@@ -50,7 +51,7 @@ public class PaymentCategoryController {
         log.info("Creating payment category: account id - {} | name - {}", account.getId(), request.getName());
 
         PaymentCategory category = paymentCategoriesService.create(request.getName());
-        return ResponseEntity.status(HttpStatus.CREATED).body(PaymentCategoryDTOMapper.apply(category));
+        return ResponseEntity.status(HttpStatus.CREATED).body(paymentCategoryMapper.toDTO(category));
     }
 
     @PutMapping("{id}")
@@ -61,7 +62,7 @@ public class PaymentCategoryController {
         log.info("Updating payment category: account id - {} | name - {}", account.getId(), request.getName());
 
         PaymentCategory category = paymentCategoriesService.update(id, request.getName());
-        return ResponseEntity.status(HttpStatus.OK).body(PaymentCategoryDTOMapper.apply(category));
+        return ResponseEntity.status(HttpStatus.OK).body(paymentCategoryMapper.toDTO(category));
     }
 
     @DeleteMapping("{id}")

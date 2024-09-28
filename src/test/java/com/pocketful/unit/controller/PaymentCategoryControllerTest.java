@@ -6,6 +6,8 @@ import com.pocketful.controller.PaymentCategoryController;
 import com.pocketful.entity.Account;
 import com.pocketful.enums.AccountRole;
 import com.pocketful.entity.PaymentCategory;
+import com.pocketful.mapper.PaymentCategoryMapper;
+import com.pocketful.mapper.PaymentMapper;
 import com.pocketful.service.AccountService;
 import com.pocketful.service.PaymentCategoryService;
 import com.pocketful.utils.AccountBuilder;
@@ -28,7 +30,7 @@ import java.util.Collections;
 
 import static com.pocketful.config.SecurityFilterConfig.AUTHORIZATION;
 
-@Import(SecurityConfig.class)
+@Import({SecurityConfig.class, PaymentCategoryMapper.class})
 @WebMvcTest(PaymentCategoryController.class)
 public class PaymentCategoryControllerTest {
 

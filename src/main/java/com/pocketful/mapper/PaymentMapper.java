@@ -1,16 +1,18 @@
-package com.pocketful.web.mapper;
+package com.pocketful.mapper;
 
 import com.pocketful.entity.Payment;
 import com.pocketful.web.dto.payment.PaymentDTO;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.format.DateTimeFormatter;
-import java.util.function.Function;
 
+@RequiredArgsConstructor
 @Service
-public class PaymentDTOMapper implements Function<Payment, PaymentDTO> {
-    @Override
-    public PaymentDTO apply(Payment payment) {
+public class PaymentMapper {
+    private final PaymentCategoryMapper paymentCategoryMapper;
+
+    public PaymentDTO toDTO(Payment payment) {
         return PaymentDTO.builder()
                 .id(payment.getId())
                 .description(payment.getDescription())
@@ -18,7 +20,7 @@ public class PaymentDTOMapper implements Function<Payment, PaymentDTO> {
                 .amount(payment.getAmount())
                 .isExpense(payment.getIsExpense())
                 .deadlineAt(DateTimeFormatter.ofPattern("yyyy-MM-dd").format(payment.getDeadlineAt()))
-                .paymentCategory(PaymentCategoryDTOMapper.apply(payment.getPaymentCategory()))
+                .paymentCategory(paymentCategoryMapper.toDTO(payment.getPaymentCategory()))
                 .frequencyTimes(payment.getPaymentFrequency().getTimes())
                 .build();
     }

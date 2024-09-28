@@ -5,7 +5,7 @@ import com.pocketful.entity.Payment;
 import com.pocketful.util.SessionContext;
 import com.pocketful.service.PaymentService;
 import com.pocketful.web.dto.payment.PaymentDTO;
-import com.pocketful.web.mapper.PaymentDTOMapper;
+import com.pocketful.mapper.PaymentMapper;
 import com.pocketful.web.dto.payment.PaymentIdDTO;
 import com.pocketful.web.dto.payment.PaymentEditionRequestDTO;
 import com.pocketful.web.dto.payment.PaymentCreationRequestDTO;
@@ -37,7 +37,7 @@ import java.util.List;
 public class PaymentController {
 
     private final PaymentService paymentService;
-    private final PaymentDTOMapper paymentDTOMapper;
+    private final PaymentMapper paymentMapper;
 
     @GetMapping
     public ResponseEntity<List<PaymentDTO>> getAll(
@@ -47,7 +47,7 @@ public class PaymentController {
         log.info("Getting payments between two dates: account id - {} | started at - {} | ended at - {}", account.getId(), startAt, endAt);
 
         List<PaymentDTO> payments = paymentService.findBy(account, startAt, endAt).stream()
-            .map(paymentDTOMapper)
+            .map(paymentMapper::toDTO)
             .toList();
 
         return ResponseEntity.status(HttpStatus.OK).body(payments);
@@ -59,7 +59,7 @@ public class PaymentController {
         log.info("Getting payment by id: account id - {} | payment id - {}", account.getId(), id);
 
         Payment payment = paymentService.findById(id, account);
-        return ResponseEntity.status(HttpStatus.OK).body(paymentDTOMapper.apply(payment));
+        return ResponseEntity.status(HttpStatus.OK).body(paymentMapper.toDTO(payment));
     }
 
     @PostMapping
