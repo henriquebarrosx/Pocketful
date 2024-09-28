@@ -1,4 +1,4 @@
-package com.pocketful.entity;
+package com.pocketful.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Setter;

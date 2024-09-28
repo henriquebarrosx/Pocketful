@@ -1,6 +1,6 @@
 package com.pocketful.service;
 
-import com.pocketful.entity.Currency;
+import com.pocketful.model.Currency;
 import com.pocketful.entity.*;
 import com.pocketful.enums.PaymentSelectionOption;
 import com.pocketful.exception.Payment.InvalidPaymentAmountException;
