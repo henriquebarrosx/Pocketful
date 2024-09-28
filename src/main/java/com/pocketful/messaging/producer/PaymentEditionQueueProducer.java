@@ -1,4 +1,4 @@
-package com.pocketful.producer;
+package com.pocketful.messaging.producer;
 
 import com.pocketful.entity.Payment;
 import com.pocketful.enums.PaymentSelectionOption;

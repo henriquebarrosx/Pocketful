@@ -1,4 +1,4 @@
-package com.pocketful.consumer;
+package com.pocketful.messaging.consumer;
 
 import com.pocketful.service.PaymentService;
 import com.pocketful.web.dto.payment.PaymentGenerationPayloadDTO;
