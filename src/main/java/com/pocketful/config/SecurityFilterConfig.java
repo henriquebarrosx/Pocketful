@@ -32,14 +32,12 @@ public class SecurityFilterConfig extends OncePerRequestFilter {
         Optional<String> token = this.getTokenFromHeaders(request);
 
         if (token.isPresent()) {
-            String sessionEmail = JsonWebToken.decode(token.get());
+            Optional<String> sessionEmail = JsonWebToken.decode(token.get());
 
-            if (JsonWebToken.validate(token.get())) {
-                Account account = accountService.findByEmail(sessionEmail);
+            if (sessionEmail.isPresent()) {
+                Account account = accountService.findByEmail(sessionEmail.get());
                 var authentication = new UsernamePasswordAuthenticationToken(account, null, account.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-            } else {
-                logger.error("Invalid provided access token");
             }
         }
 

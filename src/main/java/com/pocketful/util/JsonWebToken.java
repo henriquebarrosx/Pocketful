@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Optional;
 
 @Slf4j
 public abstract class JsonWebToken {
@@ -28,23 +29,22 @@ public abstract class JsonWebToken {
             .sign(algorithm);
     }
 
-    public static String decode(String token) throws JWTVerificationException {
-        Algorithm algorithm = Algorithm.HMAC256(secret);
-
-        return JWT.require(algorithm)
-            .withIssuer(ISSUER)
-            .build()
-            .verify(sanitize(token))
-            .getSubject();
-    }
-
-    public static Boolean validate(String token) {
+    public static Optional<String> decode(String token) {
         try {
-            decode(token);
-            return true;
-        } catch (JWTVerificationException e) {
-            log.warn("invalid token: {}", e.getMessage());
-            return false;
+            Algorithm algorithm = Algorithm.HMAC256(secret);
+
+            String decodedSubject = JWT.require(algorithm)
+                    .withIssuer(ISSUER)
+                    .build()
+                    .verify(sanitize(token))
+                    .getSubject();
+
+            return Optional.of(decodedSubject);
+        }
+
+        catch (JWTVerificationException exception) {
+            log.error(exception.getMessage());
+            return Optional.empty();
         }
     }
 
@@ -59,7 +59,7 @@ public abstract class JsonWebToken {
 
     private static Instant getExpireAt() {
         ZoneId zone = ZoneId.of("America/Sao_Paulo");
-        return ZonedDateTime.now(zone).plusWeeks(1).toInstant();
+        return ZonedDateTime.now(zone).plusSeconds(10).toInstant();
     }
 
 }
