@@ -1,4 +1,4 @@
-package com.pocketful.model;
+package com.pocketful.util;
 
 import lombok.AllArgsConstructor;
 import lombok.Setter;
@@ -10,10 +10,8 @@ import java.util.Locale;
 
 @Setter
 @AllArgsConstructor
-public class Currency {
-    private BigDecimal amount;
-
-    public String getValue() {
+public abstract class CurrencyFormatter {
+    public static String apply(BigDecimal amount) {
         Locale brazilLocale = new Locale("pt", "BR");
         DecimalFormat currencyFormat = new DecimalFormat("R$ ###,###,###,##0.00", new DecimalFormatSymbols(brazilLocale));
         return currencyFormat.format(amount);

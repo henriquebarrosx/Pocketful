@@ -1,6 +1,6 @@
 package com.pocketful.service;
 
-import com.pocketful.model.Currency;
+import com.pocketful.util.CurrencyFormatter;
 import com.pocketful.entity.*;
 import com.pocketful.enums.PaymentSelectionOption;
 import com.pocketful.exception.Payment.InvalidPaymentAmountException;
@@ -221,13 +221,12 @@ public class PaymentService {
     }
 
     private PaymentModel convertPaymentToModel(Payment payment, LocalDate date) {
-        Currency currency = new Currency(payment.getAmount());
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
         return PaymentModel.builder()
                 .description(payment.getDescription())
                 .deadlineAt(dateTimeFormatter.format(payment.getDeadlineAt()))
-                .amount(currency.getValue())
+                .amount(CurrencyFormatter.apply(payment.getAmount()))
                 .isOverdue(payment.getDeadlineAt().isBefore(date))
                 .build();
     }
