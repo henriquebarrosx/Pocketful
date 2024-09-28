@@ -2,7 +2,7 @@ package com.pocketful.service;
 
 import com.pocketful.entity.Account;
 import com.pocketful.util.JsonWebToken;
-import com.pocketful.web.dto.account.AuthenticatedAccountDTO;
+import com.pocketful.model.dto.account.AuthenticatedAccountDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

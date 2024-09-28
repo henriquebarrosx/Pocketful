@@ -1,7 +1,7 @@
 package com.pocketful.mapper;
 
 import com.pocketful.entity.PaymentCategory;
-import com.pocketful.web.dto.payment_category.PaymentCategoryDTO;
+import com.pocketful.model.dto.payment_category.PaymentCategoryDTO;
 import org.springframework.stereotype.Service;
 
 @Service

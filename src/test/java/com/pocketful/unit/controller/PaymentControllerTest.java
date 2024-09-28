@@ -18,9 +18,9 @@ import com.pocketful.utils.PaymentCreationRequestBuilder;
 import com.pocketful.utils.PaymentEditionRequestBuilder;
 import com.pocketful.utils.PaymentFrequencyBuilder;
 import com.pocketful.utils.SessionBuilder;
-import com.pocketful.web.dto.payment.PaymentCreationRequestDTO;
-import com.pocketful.web.dto.payment.PaymentDeletionRequestDTO;
-import com.pocketful.web.dto.payment.PaymentEditionRequestDTO;
+import com.pocketful.model.dto.payment.PaymentCreationRequestDTO;
+import com.pocketful.model.dto.payment.PaymentDeletionRequestDTO;
+import com.pocketful.model.dto.payment.PaymentEditionRequestDTO;
 import com.pocketful.mapper.PaymentMapper;
 
 import org.junit.jupiter.api.Test;

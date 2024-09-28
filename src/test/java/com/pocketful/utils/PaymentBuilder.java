@@ -4,8 +4,8 @@ import com.pocketful.entity.Account;
 import com.pocketful.entity.Payment;
 import com.pocketful.entity.PaymentCategory;
 import com.pocketful.entity.PaymentFrequency;
-import com.pocketful.web.dto.payment.PaymentCreationRequestDTO;
-import com.pocketful.web.dto.payment.PaymentEditionRequestDTO;
+import com.pocketful.model.dto.payment.PaymentCreationRequestDTO;
+import com.pocketful.model.dto.payment.PaymentEditionRequestDTO;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

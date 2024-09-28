@@ -2,7 +2,7 @@ package com.pocketful.utils;
 
 import com.pocketful.entity.PaymentCategory;
 import com.pocketful.enums.PaymentSelectionOption;
-import com.pocketful.web.dto.payment.PaymentEditionRequestDTO;
+import com.pocketful.model.dto.payment.PaymentEditionRequestDTO;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

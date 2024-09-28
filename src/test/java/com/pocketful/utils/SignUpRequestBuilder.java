@@ -1,6 +1,6 @@
 package com.pocketful.utils;
 
-import com.pocketful.web.dto.account.SignUpRequestDTO;
+import com.pocketful.model.dto.account.SignUpRequestDTO;
 
 public class SignUpRequestBuilder {
     public static SignUpRequestDTO build() {

@@ -1,4 +1,4 @@
-package com.pocketful.web.dto.payment;
+package com.pocketful.model.dto.payment;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

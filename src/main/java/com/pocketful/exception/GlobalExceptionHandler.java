@@ -9,7 +9,7 @@ import com.pocketful.exception.PaymentCategory.PaymentCategoryAlreadyExistExcept
 import com.pocketful.exception.PaymentCategory.PaymentCategoryNotFoundException;
 import com.pocketful.exception.PaymentFrequency.InvalidFrequencyTimesException;
 import com.pocketful.exception.PaymentFrequency.PaymentFrequencyNotFoundException;
-import com.pocketful.web.dto.exception.ExceptionDTO;
+import com.pocketful.model.dto.exception.ExceptionDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

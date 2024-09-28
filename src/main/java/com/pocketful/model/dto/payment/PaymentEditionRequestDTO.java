@@ -1,4 +1,4 @@
-package com.pocketful.web.dto.payment;
+package com.pocketful.model.dto.payment;
 
 import com.pocketful.enums.PaymentSelectionOption;
 import jakarta.validation.constraints.NotBlank;

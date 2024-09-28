@@ -3,7 +3,7 @@ package com.pocketful.utils;
 import com.pocketful.entity.Account;
 import com.pocketful.entity.PaymentCategory;
 import com.pocketful.entity.PaymentFrequency;
-import com.pocketful.web.dto.payment.PaymentGenerationPayloadDTO;
+import com.pocketful.model.dto.payment.PaymentGenerationPayloadDTO;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

@@ -1,6 +1,6 @@
 package com.pocketful.utils;
 
-import com.pocketful.web.dto.payment.PaymentCreationRequestDTO;
+import com.pocketful.model.dto.payment.PaymentCreationRequestDTO;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

@@ -1,4 +1,4 @@
-package com.pocketful.web.dto.exception;
+package com.pocketful.model.dto.account;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -7,6 +7,6 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class ExceptionDTO {
-    private final String message;
+public class AccountIdDTO {
+    private final Long id;
 }

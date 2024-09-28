@@ -1,6 +1,6 @@
-package com.pocketful.web.dto.payment;
+package com.pocketful.model.dto.payment;
 
-import com.pocketful.web.dto.payment_category.PaymentCategoryDTO;
+import com.pocketful.model.dto.payment_category.PaymentCategoryDTO;
 import lombok.*;
 
 import java.math.BigDecimal;

@@ -1,7 +1,7 @@
 package com.pocketful.messaging.consumer;
 
 import com.pocketful.service.PaymentService;
-import com.pocketful.web.dto.payment.PaymentEditionQueuePayload;
+import com.pocketful.model.dto.payment.PaymentEditionQueuePayload;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;

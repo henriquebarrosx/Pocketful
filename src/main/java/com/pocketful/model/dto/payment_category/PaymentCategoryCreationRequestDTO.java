@@ -1,4 +1,4 @@
-package com.pocketful.web.dto.payment_category;
+package com.pocketful.model.dto.payment_category;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;

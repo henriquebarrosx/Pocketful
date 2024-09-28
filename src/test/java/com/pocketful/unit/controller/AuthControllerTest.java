@@ -10,7 +10,7 @@ import com.pocketful.service.AuthenticationService;
 import com.pocketful.utils.AccountBuilder;
 import com.pocketful.utils.SignInResponseBuilder;
 import com.pocketful.utils.SignUpRequestBuilder;
-import com.pocketful.web.dto.account.SignInRequestDTO;
+import com.pocketful.model.dto.account.SignInRequestDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;

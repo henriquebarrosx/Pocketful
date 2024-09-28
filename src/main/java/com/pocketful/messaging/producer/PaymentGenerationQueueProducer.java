@@ -1,7 +1,7 @@
 package com.pocketful.messaging.producer;
 
 import com.pocketful.entity.Payment;
-import com.pocketful.web.dto.payment.PaymentGenerationPayloadDTO;
+import com.pocketful.model.dto.payment.PaymentGenerationPayloadDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;

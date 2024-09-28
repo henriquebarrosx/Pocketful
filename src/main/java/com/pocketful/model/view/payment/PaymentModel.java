@@ -1,4 +1,4 @@
-package com.pocketful.web.view.payment;
+package com.pocketful.model.view.payment;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

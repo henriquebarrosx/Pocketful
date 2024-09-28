@@ -4,12 +4,12 @@ import com.pocketful.entity.Account;
 import com.pocketful.entity.Payment;
 import com.pocketful.util.SessionContext;
 import com.pocketful.service.PaymentService;
-import com.pocketful.web.dto.payment.PaymentDTO;
+import com.pocketful.model.dto.payment.PaymentDTO;
 import com.pocketful.mapper.PaymentMapper;
-import com.pocketful.web.dto.payment.PaymentIdDTO;
-import com.pocketful.web.dto.payment.PaymentEditionRequestDTO;
-import com.pocketful.web.dto.payment.PaymentCreationRequestDTO;
-import com.pocketful.web.dto.payment.PaymentDeletionRequestDTO;
+import com.pocketful.model.dto.payment.PaymentIdDTO;
+import com.pocketful.model.dto.payment.PaymentEditionRequestDTO;
+import com.pocketful.model.dto.payment.PaymentCreationRequestDTO;
+import com.pocketful.model.dto.payment.PaymentDeletionRequestDTO;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

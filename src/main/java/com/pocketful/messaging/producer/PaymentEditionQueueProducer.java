@@ -2,7 +2,7 @@ package com.pocketful.messaging.producer;
 
 import com.pocketful.entity.Payment;
 import com.pocketful.enums.PaymentSelectionOption;
-import com.pocketful.web.dto.payment.PaymentEditionQueuePayload;
+import com.pocketful.model.dto.payment.PaymentEditionQueuePayload;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;

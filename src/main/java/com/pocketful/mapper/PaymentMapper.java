@@ -1,7 +1,7 @@
 package com.pocketful.mapper;
 
 import com.pocketful.entity.Payment;
-import com.pocketful.web.dto.payment.PaymentDTO;
+import com.pocketful.model.dto.payment.PaymentDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
