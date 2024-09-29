@@ -11,13 +11,14 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Service
 public class AuthenticationService {
+    private final JsonWebToken jsonWebToken;
     private final AuthenticationManager authenticationManager;
 
     public AuthenticatedAccountDTO authenticate(String email, String password) {
         var credentials = new UsernamePasswordAuthenticationToken(email, password);
         var authentication = authenticationManager.authenticate(credentials);
         Account account = (Account) authentication.getPrincipal();
-        String token = JsonWebToken.generate(account.getEmail());
+        String token = jsonWebToken.encode(account.getEmail());
         return this.getAuthenticatedAccountDTO(account, token);
     }
 

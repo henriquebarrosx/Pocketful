@@ -10,7 +10,8 @@ public abstract class SessionBuilder {
     public static String build(Account account) {
         var authentication = new UsernamePasswordAuthenticationToken(account, null, account.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        return JsonWebToken.generate(account.getEmail());
+        JsonWebToken jsonWebToken = new JsonWebToken();
+        return jsonWebToken.encode(account.getEmail());
     }
 
 }

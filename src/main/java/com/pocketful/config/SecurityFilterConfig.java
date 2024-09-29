@@ -22,6 +22,7 @@ import java.util.Optional;
 @Component
 public class SecurityFilterConfig extends OncePerRequestFilter {
     private final AccountService accountService;
+    private final JsonWebToken jsonWebToken;
 
     public static final String AUTHORIZATION = "authorization";
 
@@ -32,7 +33,7 @@ public class SecurityFilterConfig extends OncePerRequestFilter {
         Optional<String> token = this.getTokenFromHeaders(request);
 
         if (token.isPresent()) {
-            Optional<String> sessionEmail = JsonWebToken.decode(token.get());
+            Optional<String> sessionEmail = jsonWebToken.decode(token.get());
 
             if (sessionEmail.isPresent()) {
                 Account account = accountService.findByEmail(sessionEmail.get());
@@ -47,6 +48,6 @@ public class SecurityFilterConfig extends OncePerRequestFilter {
     private Optional<String> getTokenFromHeaders(HttpServletRequest request) {
         var authHeader = request.getHeader(AUTHORIZATION);
         if (Objects.isNull(authHeader)) return Optional.empty();
-        return Optional.of(JsonWebToken.sanitize(authHeader));
+        return Optional.of(jsonWebToken.sanitize(authHeader));
     }
 }

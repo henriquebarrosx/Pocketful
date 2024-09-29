@@ -7,6 +7,7 @@ import com.pocketful.config.SecurityConfig;
 import com.pocketful.controller.AuthController;
 import com.pocketful.service.AccountService;
 import com.pocketful.service.AuthenticationService;
+import com.pocketful.util.JsonWebToken;
 import com.pocketful.utils.AccountBuilder;
 import com.pocketful.utils.SignInResponseBuilder;
 import com.pocketful.utils.SignUpRequestBuilder;
@@ -27,7 +28,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@Import(SecurityConfig.class)
+@Import({SecurityConfig.class, JsonWebToken.class})
 @WebMvcTest(AuthController.class)
 public class AuthControllerTest {
     @Autowired

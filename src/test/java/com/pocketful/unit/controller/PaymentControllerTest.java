@@ -11,6 +11,7 @@ import com.pocketful.exception.Payment.PaymentNotFoundException;
 import com.pocketful.mapper.PaymentCategoryMapper;
 import com.pocketful.service.AccountService;
 import com.pocketful.service.PaymentService;
+import com.pocketful.util.JsonWebToken;
 import com.pocketful.utils.AccountBuilder;
 import com.pocketful.utils.PaymentBuilder;
 import com.pocketful.utils.PaymentCategoryBuilder;
@@ -45,7 +46,7 @@ import java.util.List;
 
 import static com.pocketful.config.SecurityFilterConfig.AUTHORIZATION;
 
-@Import({SecurityConfig.class, PaymentMapper.class, PaymentCategoryMapper.class})
+@Import({SecurityConfig.class, JsonWebToken.class, PaymentMapper.class, PaymentCategoryMapper.class})
 @WebMvcTest(PaymentController.class)
 public class PaymentControllerTest {
 
